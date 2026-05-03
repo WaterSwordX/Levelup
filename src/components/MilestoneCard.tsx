@@ -35,7 +35,7 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
     if (!cardRef.current) return
     try {
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#161b22',
+        backgroundColor: '#0e1017',
         scale: 2,
       })
       const link = document.createElement('a')
@@ -51,47 +51,66 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
     <div className="space-y-2">
       <div
         ref={cardRef}
-        className="relative overflow-hidden rounded-2xl border border-[#30363d] p-5"
+        className="relative overflow-hidden rounded-2xl p-5"
         style={{
-          background: `linear-gradient(135deg, ${category.color}12, #161b22)`,
-          boxShadow: `0 0 30px ${category.color}10`,
+          background: `linear-gradient(135deg, ${category.color}15, rgba(14, 16, 23, 0.8))`,
+          border: `1px solid ${category.color}25`,
+          boxShadow: `0 0 30px ${category.color}15, inset 0 1px 0 rgba(255,255,255,0.05)`,
         }}
       >
-        {/* 装饰光晕 */}
+        {/* Decorative glow orbs */}
         <div
-          className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-15 blur-2xl"
-          style={{ backgroundColor: category.color, transform: 'translate(30%, -30%)' }}
+          className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-20 blur-3xl"
+          style={{ backgroundColor: category.color, transform: 'translate(30%, -30%)', animation: 'breathe 4s ease-in-out infinite' }}
+        />
+        <div
+          className="absolute bottom-0 left-0 w-20 h-20 rounded-full opacity-10 blur-2xl"
+          style={{ backgroundColor: category.color, transform: 'translate(-20%, 20%)' }}
         />
 
         <div className="relative">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: `${category.color}20`, boxShadow: `0 0 15px ${category.color}15` }}
+                className="w-11 h-11 rounded-xl flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(135deg, ${category.color}30, ${category.color}10)`,
+                  boxShadow: `0 0 20px ${category.color}20`,
+                }}
               >
-                <Award size={20} style={{ color: category.color }} />
+                <Award size={22} style={{ color: category.color }} />
               </div>
               <div>
-                <div className="text-xs text-[#484f58]">里程碑达成</div>
-                <div className="text-lg font-bold text-white">{category.name}</div>
+                <div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                  里程碑达成
+                </div>
+                <div
+                  className="text-base font-bold"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+                >
+                  {category.name}
+                </div>
               </div>
             </div>
             <div
-              className="text-xl font-bold px-3 py-1 rounded-lg"
-              style={{ color: category.color, backgroundColor: `${category.color}15` }}
+              className="text-lg font-bold px-3 py-1.5 rounded-xl"
+              style={{
+                fontFamily: "'Space Grotesk', sans-serif",
+                color: category.color,
+                background: `${category.color}15`,
+              }}
             >
               {milestone.milestoneHours}h
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="flex items-center gap-2 text-sm text-[#8b949e]">
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
               <Clock size={14} />
               <span>累计 {totalHours} 小时</span>
             </div>
             {dateRange && (
-              <div className="flex items-center gap-2 text-sm text-[#8b949e]">
+              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                 <Calendar size={14} />
                 <span>{dateRange}</span>
               </div>
@@ -99,35 +118,51 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
           </div>
 
           {keyEvents.length > 0 && (
-            <div className="border-t border-[#30363d] pt-3">
-              <div className="text-xs text-[#484f58] mb-2">关键事件</div>
+            <div style={{ borderTop: '1px solid var(--border)' }} className="pt-3">
+              <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+                关键事件
+              </div>
               <div className="space-y-1.5">
                 {keyEvents.map(event => (
                   <div key={event.id} className="flex items-start gap-2 text-sm">
                     <span
                       className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                      style={{ backgroundColor: category.color }}
+                      style={{ backgroundColor: category.color, boxShadow: `0 0 4px ${category.color}60` }}
                     />
-                    <span className="text-[#8b949e]">{event.description}</span>
-                    <span className="text-xs text-[#484f58] ml-auto shrink-0">{event.date}</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>{event.description}</span>
+                    <span className="text-xs ml-auto shrink-0" style={{ color: 'var(--text-muted)' }}>{event.date}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="mt-4 pt-3 border-t border-[#30363d] flex items-center justify-between">
-            <span className="text-xs text-[#484f58]">
+          <div className="mt-4 pt-3 flex items-center justify-between" style={{ borderTop: '1px solid var(--border)' }}>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {new Date(milestone.achievedAt).toLocaleDateString('zh-CN')} 达成
             </span>
-            <span className="text-xs text-[#30363d]">Levelup</span>
+            <span
+              className="text-xs font-semibold tracking-wider"
+              style={{ color: 'var(--text-muted)', fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              LEVELUP
+            </span>
           </div>
         </div>
       </div>
 
       <button
         onClick={handleDownload}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#8b949e] hover:text-[#e6edf3] hover:bg-[#21262d] rounded-lg transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all duration-200"
+        style={{ color: 'var(--text-secondary)' }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+          e.currentTarget.style.color = 'var(--text-primary)'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = 'var(--text-secondary)'
+        }}
       >
         <Download size={14} />
         保存为图片

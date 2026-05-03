@@ -28,7 +28,7 @@ export default function CategoryTree({ categories, entries, onSelect, selectedId
   if (children.length === 0 && level === 0) return null
 
   return (
-    <div className={level > 0 ? 'ml-4' : ''}>
+    <div className={level > 0 ? 'ml-5 pl-3' : ''} style={level > 0 ? { borderLeft: '1px solid var(--border)' } : undefined}>
       {children.map(cat => (
         <CategoryNode
           key={cat.id}
@@ -65,17 +65,27 @@ function CategoryNode({ category, categories, entries, onSelect, selectedId, lev
   return (
     <div>
       <div
-        className={`flex items-center gap-2 py-2 px-2 rounded-lg cursor-pointer transition-all duration-150 group ${
-          isSelected
-            ? 'bg-[#58a6ff15] text-[#58a6ff] shadow-[inset_0_0_0_1px_rgba(88,166,255,0.2)]'
-            : 'hover:bg-[#1c2128] text-[#e6edf3]'
-        }`}
+        className="flex items-center gap-2 py-2 px-2.5 rounded-xl cursor-pointer transition-all duration-200 group"
+        style={{
+          background: isSelected ? 'var(--accent-soft)' : 'transparent',
+          color: isSelected ? 'var(--accent)' : 'var(--text-primary)',
+          border: isSelected ? '1px solid rgba(245, 166, 35, 0.15)' : '1px solid transparent',
+        }}
         onClick={() => onSelect?.(category)}
+        onMouseEnter={e => {
+          if (!isSelected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
+        }}
+        onMouseLeave={e => {
+          if (!isSelected) e.currentTarget.style.background = 'transparent'
+        }}
       >
         {hasChildren ? (
           <button
-            className="p-0.5 hover:bg-[#30363d] rounded transition-colors"
+            className="p-0.5 rounded-md transition-colors duration-200"
+            style={{ color: 'var(--text-muted)' }}
             onClick={e => { e.stopPropagation(); setExpanded(!expanded) }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
           >
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </button>
@@ -83,18 +93,18 @@ function CategoryNode({ category, categories, entries, onSelect, selectedId, lev
           <span className="w-5" />
         )}
         <span
-          className="w-3 h-3 rounded-full shrink-0 shadow-sm"
-          style={{ backgroundColor: category.color }}
+          className="w-2.5 h-2.5 rounded-full shrink-0"
+          style={{ backgroundColor: category.color, boxShadow: `0 0 6px ${category.color}60` }}
         />
         <span className="text-sm font-medium flex-1 truncate">{category.name}</span>
         {showTime && totalTime > 0 && (
-          <span className="text-xs text-[#484f58] flex items-center gap-1">
+          <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
             <Clock size={12} />
             {formatMinutes(totalTime)}
           </span>
         )}
         {renderActions && (
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200" onClick={e => e.stopPropagation()}>
             {renderActions(category)}
           </div>
         )}

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Play, Pause, Square, RotateCcw } from 'lucide-react'
 
 interface Props {
@@ -43,23 +43,70 @@ export default function Timer({ onFinish, disabled }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      <div
-        className="text-6xl md:text-7xl font-mono font-extralight tracking-widest"
-        style={{
-          color: running ? '#58a6ff' : '#e6edf3',
-          textShadow: running ? '0 0 30px rgba(88,166,255,0.3)' : 'none',
-          transition: 'all 0.3s ease',
-        }}
-      >
-        {format(seconds)}
+    <div className="flex flex-col items-center gap-8 py-4">
+      {/* Timer ring */}
+      <div className="relative">
+        {/* Outer glow ring */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: running
+              ? 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)'
+              : 'none',
+            transform: 'scale(1.5)',
+            transition: 'all 0.5s ease',
+            animation: running ? 'breathe 3s ease-in-out infinite' : 'none',
+          }}
+        />
+        {/* Timer circle */}
+        <div
+          className="w-52 h-52 md:w-60 md:h-60 rounded-full flex items-center justify-center relative"
+          style={{
+            background: 'rgba(0, 0, 0, 0.3)',
+            border: `2px solid ${running ? 'var(--accent)' : 'var(--border)'}`,
+            boxShadow: running
+              ? '0 0 40px var(--accent-glow), inset 0 0 30px rgba(245, 166, 35, 0.05)'
+              : 'inset 0 0 20px rgba(0, 0, 0, 0.3)',
+            transition: 'all 0.5s ease',
+          }}
+        >
+          {/* Decorative dots on the ring */}
+          {[0, 90, 180, 270].map(deg => (
+            <div
+              key={deg}
+              className="absolute w-1.5 h-1.5 rounded-full"
+              style={{
+                background: running ? 'var(--accent)' : 'var(--text-muted)',
+                top: '50%',
+                left: '50%',
+                transform: `rotate(${deg}deg) translateY(-${window.innerWidth >= 768 ? '118' : '102'}px) translate(-50%, -50%)`,
+                opacity: running ? 0.8 : 0.3,
+                boxShadow: running ? '0 0 6px var(--accent-glow)' : 'none',
+                transition: 'all 0.3s ease',
+              }}
+            />
+          ))}
+          <div
+            className="text-5xl md:text-6xl font-extralight tracking-[0.15em]"
+            style={{
+              fontFamily: "'Space Grotesk', monospace",
+              color: running ? 'var(--accent)' : 'var(--text-primary)',
+              textShadow: running ? '0 0 30px var(--accent-glow)' : 'none',
+              transition: 'all 0.3s ease',
+            }}
+          >
+            {format(seconds)}
+          </div>
+        </div>
       </div>
+
+      {/* Controls */}
       <div className="flex items-center gap-3">
         {!running ? (
           <button
             onClick={() => setRunning(true)}
             disabled={disabled}
-            className="flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-[#58a6ff] to-[#388bfd] text-white rounded-full text-sm font-medium hover:shadow-[0_0_20px_rgba(88,166,255,0.3)] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none"
+            className="btn-primary flex items-center gap-2 px-8 py-3 text-sm"
           >
             <Play size={18} />
             {seconds > 0 ? '继续' : '开始'}
@@ -67,7 +114,12 @@ export default function Timer({ onFinish, disabled }: Props) {
         ) : (
           <button
             onClick={() => setRunning(false)}
-            className="flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-[#d29922] to-[#bb8009] text-white rounded-full text-sm font-medium hover:shadow-[0_0_20px_rgba(210,153,34,0.3)] transition-all duration-200"
+            className="flex items-center gap-2 px-8 py-3 text-sm font-semibold rounded-xl transition-all duration-200"
+            style={{
+              background: 'linear-gradient(135deg, var(--accent), #e8941a)',
+              color: '#0e1017',
+              boxShadow: '0 4px 15px var(--accent-glow)',
+            }}
           >
             <Pause size={18} />
             暂停
@@ -77,20 +129,40 @@ export default function Timer({ onFinish, disabled }: Props) {
           <>
             <button
               onClick={handleStop}
-              className="flex items-center gap-2 px-5 py-3 bg-[#f8514920] text-[#f85149] border border-[#f8514930] rounded-full text-sm font-medium hover:bg-[#f8514930] transition-all duration-200"
+              className="flex items-center gap-2 px-5 py-3 text-sm font-medium rounded-xl transition-all duration-200"
+              style={{
+                background: 'rgba(255, 107, 107, 0.1)',
+                color: 'var(--coral)',
+                border: '1px solid rgba(255, 107, 107, 0.2)',
+              }}
             >
               <Square size={16} />
               结束
             </button>
             <button
               onClick={handleReset}
-              className="p-3 text-[#484f58] hover:text-[#8b949e] hover:bg-[#21262d] rounded-full transition-colors"
+              className="p-3 rounded-xl transition-all duration-200"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = 'var(--text-secondary)'
+                e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = 'var(--text-muted)'
+                e.currentTarget.style.background = 'transparent'
+              }}
             >
               <RotateCcw size={18} />
             </button>
           </>
         )}
       </div>
+
+      {disabled && (
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          请先选择一个技能分类
+        </p>
+      )}
     </div>
   )
 }

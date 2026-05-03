@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import type { Category, TimeEntry } from '../types'
 import { getTopCategories, getCategoryTotalTime, getCategoryPath } from '../store'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { FileText, FileSpreadsheet } from 'lucide-react'
+import { FileText, FileSpreadsheet, BarChart3 } from 'lucide-react'
 
 interface Props {
   categories: Category[]
@@ -76,12 +76,12 @@ export default function Stats({ categories, entries }: Props) {
   const totalWeeks = heatmapData.length > 0 ? heatmapData[heatmapData.length - 1].week + 1 : 0
 
   const getHeatColor = (minutes: number) => {
-    if (minutes === 0) return '#21262d'
+    if (minutes === 0) return 'rgba(255, 255, 255, 0.04)'
     const ratio = minutes / maxHeatmap
-    if (ratio < 0.25) return '#0e4429'
-    if (ratio < 0.5) return '#006d32'
-    if (ratio < 0.75) return '#26a641'
-    return '#39d353'
+    if (ratio < 0.25) return 'rgba(245, 166, 35, 0.15)'
+    if (ratio < 0.5) return 'rgba(245, 166, 35, 0.3)'
+    if (ratio < 0.75) return 'rgba(245, 166, 35, 0.5)'
+    return 'rgba(245, 166, 35, 0.8)'
   }
 
   const exportCSV = () => {
@@ -110,29 +110,49 @@ export default function Stats({ categories, entries }: Props) {
     const totalMin = entries.reduce((s, e) => s + e.duration, 0)
     const categorySummary = topCategories.map(cat => {
       const total = getCategoryTotalTime(cat.id, entries, categories)
-      return `<tr><td style="padding:8px;border-bottom:1px solid #30363d"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${cat.color};margin-right:8px;vertical-align:middle"></span>${cat.name}</td><td style="padding:8px;border-bottom:1px solid #30363d;text-align:right;color:#e6edf3">${formatMinutes(total)}</td><td style="padding:8px;border-bottom:1px solid #30363d;text-align:right;color:#8b949e">${(total / totalMin * 100).toFixed(1)}%</td></tr>`
+      return `<tr><td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${cat.color};margin-right:10px;vertical-align:middle;box-shadow:0 0 8px ${cat.color}60"></span>${cat.name}</td><td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:right;color:#f0f0f3;font-family:'Space Grotesk',sans-serif;font-weight:600">${formatMinutes(total)}</td><td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:right;color:#8a8d9b">${(total / totalMin * 100).toFixed(1)}%</td></tr>`
     }).join('')
     const entryRows = sorted.map(e => {
       const path = getCategoryPath(e.categoryId, categories)
-      return `<tr><td style="padding:6px 8px;border-bottom:1px solid #21262d;color:#8b949e">${e.date}</td><td style="padding:6px 8px;border-bottom:1px solid #21262d;color:#e6edf3">${path}</td><td style="padding:6px 8px;border-bottom:1px solid #21262d;color:#8b949e">${e.description || '-'}</td><td style="padding:6px 8px;border-bottom:1px solid #21262d;text-align:right;color:#e6edf3">${e.duration}分钟</td></tr>`
+      return `<tr><td style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:#8a8d9b">${e.date}</td><td style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:#f0f0f3">${path}</td><td style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:#8a8d9b">${e.description || '-'}</td><td style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;color:#f0f0f3;font-family:'Space Grotesk',sans-serif">${e.duration}分钟</td></tr>`
     }).join('')
-    const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>Levelup 技能时间报告</title><style>body{font-family:-apple-system,"Microsoft YaHei",sans-serif;max-width:800px;margin:0 auto;padding:40px 20px;background:#0d1117;color:#e6edf3}h1{font-size:24px;margin-bottom:8px}.subtitle{color:#8b949e;font-size:14px;margin-bottom:32px}.summary-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px}.card-value{font-size:24px;font-weight:bold;color:#fff}.card-label{font-size:12px;color:#8b949e;margin-top:4px}h2{font-size:18px;margin:24px 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;padding:8px;border-bottom:2px solid #30363d;font-size:12px;color:#8b949e}.footer{margin-top:40px;padding-top:16px;border-top:1px solid #21262d;font-size:12px;color:#484f58;text-align:center}</style></head><body><h1>Levelup 技能时间报告</h1><div class="subtitle">生成于 ${new Date().toLocaleDateString('zh-CN')}</div><div class="summary-cards"><div class="card"><div class="card-value">${formatMinutes(totalMin)}</div><div class="card-label">总投入时间</div></div><div class="card"><div class="card-value">${entries.length}</div><div class="card-label">记录条数</div></div><div class="card"><div class="card-value">${topCategories.length}</div><div class="card-label">技能分类</div></div></div><h2>分类汇总</h2><table><thead><tr><th>分类</th><th style="text-align:right">累计时间</th><th style="text-align:right">占比</th></tr></thead><tbody>${categorySummary}</tbody></table><h2>详细记录</h2><table><thead><tr><th>日期</th><th>分类</th><th>描述</th><th style="text-align:right">时长</th></tr></thead><tbody>${entryRows}</tbody></table><div class="footer">Levelup · 数据导出</div></body></html>`
+    const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>Levelup 技能时间报告</title><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans','PingFang SC','Microsoft YaHei',sans-serif;max-width:800px;margin:0 auto;padding:48px 32px;background:#08090d;color:#f0f0f3;-webkit-font-smoothing:antialiased}h1{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;margin-bottom:6px}.subtitle{color:#4a4d5a;font-size:14px;margin-bottom:36px}.summary-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:36px}.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px}.card-value{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:#f0f0f3}.card-label{font-size:12px;color:#4a4d5a;margin-top:4px;text-transform:uppercase;letter-spacing:0.05em}h2{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:600;margin:28px 0 14px;color:#f0f0f3;letter-spacing:0.02em}table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;padding:10px 12px;border-bottom:2px solid rgba(255,255,255,0.08);font-size:11px;color:#4a4d5a;text-transform:uppercase;letter-spacing:0.05em;font-family:'Space Grotesk',sans-serif}.footer{margin-top:48px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;color:#4a4d5a;text-align:center;font-family:'Space Grotesk',sans-serif;letter-spacing:0.05em}</style></head><body><h1>Levelup</h1><div class="subtitle">技能时间报告 · ${new Date().toLocaleDateString('zh-CN')}</div><div class="summary-cards"><div class="card"><div class="card-value">${formatMinutes(totalMin)}</div><div class="card-label">总投入时间</div></div><div class="card"><div class="card-value">${entries.length}</div><div class="card-label">记录条数</div></div><div class="card"><div class="card-value">${topCategories.length}</div><div class="card-label">技能分类</div></div></div><h2>分类汇总</h2><table><thead><tr><th>分类</th><th style="text-align:right">累计时间</th><th style="text-align:right">占比</th></tr></thead><tbody>${categorySummary}</tbody></table><h2>详细记录</h2><table><thead><tr><th>日期</th><th>分类</th><th>描述</th><th style="text-align:right">时长</th></tr></thead><tbody>${entryRows}</tbody></table><div class="footer">LEVELUP · DATA EXPORT</div></body></html>`
     const win = window.open('', '_blank')
     if (win) { win.document.write(html); win.document.close(); setTimeout(() => win.print(), 300) }
   }
 
-  const tooltipStyle = { contentStyle: { backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '8px', color: '#e6edf3', fontSize: '12px' } }
+  const tooltipStyle = {
+    contentStyle: {
+      background: 'rgba(21, 23, 30, 0.95)',
+      border: '1px solid rgba(255, 255, 255, 0.08)',
+      borderRadius: '12px',
+      color: '#f0f0f3',
+      fontSize: '12px',
+      backdropFilter: 'blur(12px)',
+      fontFamily: "'DM Sans', sans-serif",
+    },
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-white">统计</h2>
+        <div>
+          <h2
+            className="text-2xl font-bold"
+            style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+          >
+            统计
+          </h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+            可视化你的成长数据
+          </p>
+        </div>
         {entries.length > 0 && (
           <div className="flex items-center gap-2">
-            <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#8b949e] bg-[#21262d] border border-[#30363d] rounded-lg hover:border-[#484f58] hover:text-[#e6edf3] transition-colors">
+            <button onClick={exportCSV} className="btn-ghost flex items-center gap-1.5 px-3 py-2 text-xs">
               <FileSpreadsheet size={14} /> 导出CSV
             </button>
-            <button onClick={exportPDF} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#8b949e] bg-[#21262d] border border-[#30363d] rounded-lg hover:border-[#484f58] hover:text-[#e6edf3] transition-colors">
+            <button onClick={exportPDF} className="btn-ghost flex items-center gap-1.5 px-3 py-2 text-xs">
               <FileText size={14} /> 导出PDF
             </button>
           </div>
@@ -140,20 +160,21 @@ export default function Stats({ categories, entries }: Props) {
       </div>
 
       {entries.length === 0 ? (
-        <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-12 text-center text-[#484f58] text-sm">
-          暂无数据，开始记录后查看统计
+        <div className="glass-card p-16 text-center">
+          <BarChart3 size={40} style={{ color: 'var(--text-muted)', margin: '0 auto 16px' }} />
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>暂无数据，开始记录后查看统计</p>
         </div>
       ) : (
         <>
           {pieData.length > 0 && (
-            <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-              <h3 className="text-sm font-medium text-[#8b949e] mb-4">时间占比</h3>
-              <div className="flex flex-col md:flex-row items-center gap-4">
-                <div className="w-48 h-48">
+            <div className="glass-card p-5">
+              <h3 className="section-title mb-5">时间占比</h3>
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="w-52 h-52">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value">
-                        {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value">
+                        {pieData.map((entry, i) => <Cell key={i} fill={entry.color} stroke="transparent" />)}
                       </Pie>
                       <Tooltip {...tooltipStyle} formatter={(value) => formatMinutes(Number(value))} />
                     </PieChart>
@@ -161,10 +182,13 @@ export default function Stats({ categories, entries }: Props) {
                 </div>
                 <div className="flex flex-wrap gap-3 justify-center">
                   {pieData.map(item => (
-                    <div key={item.name} className="flex items-center gap-1.5 text-xs">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span className="text-[#8b949e]">{item.name}</span>
-                      <span className="text-[#484f58]">{formatMinutes(item.value)}</span>
+                    <div key={item.name} className="flex items-center gap-2 text-xs">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: item.color, boxShadow: `0 0 6px ${item.color}60` }}
+                      />
+                      <span style={{ color: 'var(--text-secondary)' }}>{item.name}</span>
+                      <span style={{ color: 'var(--text-muted)', fontFamily: "'Space Grotesk', sans-serif" }}>{formatMinutes(item.value)}</span>
                     </div>
                   ))}
                 </div>
@@ -172,39 +196,53 @@ export default function Stats({ categories, entries }: Props) {
             </div>
           )}
 
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-            <h3 className="text-sm font-medium text-[#8b949e] mb-4">每周投入趋势</h3>
-            <div className="h-48">
+          <div className="glass-card p-5">
+            <h3 className="section-title mb-5">每周投入趋势</h3>
+            <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData}>
-                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#484f58' }} axisLine={{ stroke: '#30363d' }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: '#484f58' }} axisLine={false} tickLine={false} tickFormatter={v => formatMinutes(Number(v))} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#4a4d5a' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: '#4a4d5a' }} axisLine={false} tickLine={false} tickFormatter={v => formatMinutes(Number(v))} />
                   <Tooltip {...tooltipStyle} formatter={(value) => formatMinutes(Number(value))} />
-                  <Bar dataKey="minutes" fill="#58a6ff" radius={[4, 4, 0, 0]} />
+                  <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f5a623" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#f5a623" stopOpacity={0.4} />
+                    </linearGradient>
+                  </defs>
+                  <Bar dataKey="minutes" fill="url(#barGradient)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-            <h3 className="text-sm font-medium text-[#8b949e] mb-4">每日活跃（近90天）</h3>
+          <div className="glass-card p-5">
+            <h3 className="section-title mb-5">每日活跃（近90天）</h3>
             <div className="overflow-x-auto">
-              <div className="inline-flex gap-0.5">
+              <div className="inline-flex gap-[3px]">
                 {Array.from({ length: totalWeeks }, (_, weekIdx) => (
-                  <div key={weekIdx} className="flex flex-col gap-0.5">
+                  <div key={weekIdx} className="flex flex-col gap-[3px]">
                     {Array.from({ length: 7 }, (_, dayIdx) => {
                       const cell = heatmapData.find(d => d.week === weekIdx && d.day === dayIdx)
                       return (
-                        <div key={dayIdx} className="w-3 h-3 rounded-sm" style={{ backgroundColor: cell ? getHeatColor(cell.minutes) : '#21262d' }} title={cell ? `${cell.date}: ${cell.minutes}分钟` : ''} />
+                        <div
+                          key={dayIdx}
+                          className="w-[13px] h-[13px] rounded-[3px] transition-all duration-200"
+                          style={{
+                            backgroundColor: cell ? getHeatColor(cell.minutes) : 'rgba(255,255,255,0.02)',
+                            boxShadow: cell && cell.minutes > 0 ? `0 0 6px ${getHeatColor(cell.minutes)}` : 'none',
+                          }}
+                          title={cell ? `${cell.date}: ${cell.minutes}分钟` : ''}
+                        />
                       )
                     })}
                   </div>
                 ))}
               </div>
-              <div className="flex items-center gap-1 mt-2 text-xs text-[#484f58]">
+              <div className="flex items-center gap-1.5 mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
                 <span>少</span>
-                {['#21262d', '#0e4429', '#006d32', '#26a641', '#39d353'].map(c => (
-                  <span key={c} className="w-3 h-3 rounded-sm" style={{ backgroundColor: c }} />
+                {['rgba(255,255,255,0.04)', 'rgba(245,166,35,0.15)', 'rgba(245,166,35,0.3)', 'rgba(245,166,35,0.5)', 'rgba(245,166,35,0.8)'].map(c => (
+                  <span key={c} className="w-[13px] h-[13px] rounded-[3px]" style={{ backgroundColor: c }} />
                 ))}
                 <span>多</span>
               </div>

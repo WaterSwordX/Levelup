@@ -12,8 +12,6 @@ interface Props {
   setGoals: (goals: Goal[]) => void
 }
 
-const inputClass = "w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] placeholder-[#484f58] focus:outline-none focus:border-[#58a6ff] focus:shadow-[0_0_0_3px_rgba(88,166,255,0.15)] transition-all"
-
 export default function Categories({ categories, entries, setCategories, goals, setGoals }: Props) {
   const [showAdd, setShowAdd] = useState<'top' | string | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
@@ -117,12 +115,22 @@ export default function Categories({ categories, entries, setCategories, goals, 
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5 animate-fade-in-up">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-white">技能分类</h2>
+        <div>
+          <h2
+            className="text-2xl font-bold"
+            style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+          >
+            技能分类
+          </h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+            管理你的技能树
+          </p>
+        </div>
         <button
           onClick={() => { setShowAdd('top'); setName(''); setColor(PRESET_COLORS[categories.length % PRESET_COLORS.length]) }}
-          className="flex items-center gap-1.5 px-3 py-2 bg-[#238636] text-white text-sm rounded-lg hover:bg-[#2ea043] transition-colors shadow-sm"
+          className="btn-primary flex items-center gap-1.5 px-4 py-2.5 text-sm"
         >
           <Plus size={16} />
           添加大类
@@ -131,23 +139,32 @@ export default function Categories({ categories, entries, setCategories, goals, 
 
       {/* 表单 */}
       {(showAdd !== null || editId !== null || goalCatId !== null) && (
-        <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 space-y-3">
+        <div className="glass-card p-5 space-y-4 animate-fade-in-up">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-[#e6edf3]">
+            <h3
+              className="text-sm font-semibold"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+            >
               {editId ? '编辑分类' : goalCatId ? '设定目标' : showAdd === 'top' ? '添加大类' : '添加子类'}
             </h3>
-            <button onClick={cancelForm} className="text-[#484f58] hover:text-[#8b949e] transition-colors">
+            <button
+              onClick={cancelForm}
+              className="p-1.5 rounded-lg transition-colors duration-200"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+            >
               <X size={18} />
             </button>
           </div>
 
           {goalCatId ? (
             <>
-              <div className="text-sm text-[#8b949e]">
-                为 <span className="font-medium text-[#e6edf3]">{categories.find(c => c.id === goalCatId)?.name}</span> 设定目标小时数
+              <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                为 <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{categories.find(c => c.id === goalCatId)?.name}</span> 设定目标小时数
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#8b949e] mb-1">目标小时数</label>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>目标小时数</label>
                 <input
                   type="number"
                   value={goalHours}
@@ -155,16 +172,17 @@ export default function Categories({ categories, entries, setCategories, goals, 
                   placeholder="例如：500"
                   min="1"
                   step="0.5"
-                  className={inputClass}
+                  className="input-field"
                   autoFocus
                   onKeyDown={e => e.key === 'Enter' && handleSaveGoal()}
                 />
-                <p className="text-xs text-[#484f58] mt-1">10000小时定律建议长期目标设为10000小时</p>
+                <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>10000小时定律建议长期目标设为10000小时</p>
               </div>
               {getGoalForCategory(goalCatId, goals) && (
                 <button
                   onClick={() => { handleDeleteGoal(goalCatId); setGoalCatId(null) }}
-                  className="text-xs text-[#f85149] hover:text-[#ff7b72] transition-colors"
+                  className="text-xs transition-colors duration-200"
+                  style={{ color: 'var(--coral)' }}
                 >
                   清除目标
                 </button>
@@ -172,7 +190,7 @@ export default function Categories({ categories, entries, setCategories, goals, 
               <button
                 onClick={handleSaveGoal}
                 disabled={!goalHours || Number(goalHours) <= 0}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#238636] text-white text-sm rounded-lg hover:bg-[#2ea043] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="btn-primary flex items-center gap-1.5 px-4 py-2.5 text-sm"
               >
                 <Check size={16} />
                 保存目标
@@ -185,27 +203,29 @@ export default function Categories({ categories, entries, setCategories, goals, 
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="分类名称"
-                className={inputClass}
+                className="input-field"
                 autoFocus
                 onKeyDown={e => e.key === 'Enter' && (editId ? handleEdit() : handleAdd())}
               />
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-[#484f58]">颜色：</span>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>颜色</span>
                 {PRESET_COLORS.map(c => (
                   <button
                     key={c}
                     onClick={() => setColor(c)}
-                    className={`w-6 h-6 rounded-full border-2 transition-all ${
-                      color === c ? 'border-white scale-110' : 'border-transparent'
-                    }`}
-                    style={{ backgroundColor: c }}
+                    className="w-7 h-7 rounded-full transition-all duration-200"
+                    style={{
+                      backgroundColor: c,
+                      boxShadow: color === c ? `0 0 0 2px var(--bg-deep), 0 0 0 4px ${c}, 0 0 12px ${c}60` : 'none',
+                      transform: color === c ? 'scale(1.15)' : 'scale(1)',
+                    }}
                   />
                 ))}
               </div>
               <button
                 onClick={editId ? handleEdit : handleAdd}
                 disabled={!name.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#238636] text-white text-sm rounded-lg hover:bg-[#2ea043] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="btn-primary flex items-center gap-1.5 px-4 py-2.5 text-sm"
               >
                 <Check size={16} />
                 {editId ? '保存' : '添加'}
@@ -216,9 +236,9 @@ export default function Categories({ categories, entries, setCategories, goals, 
       )}
 
       {/* 分类树 */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-2">
+      <div className="glass-card-solid p-3">
         {categories.length === 0 && showAdd === null ? (
-          <div className="p-8 text-center text-[#484f58] text-sm">
+          <div className="p-10 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
             还没有分类，点击上方「添加大类」开始
           </div>
         ) : (
@@ -233,33 +253,45 @@ export default function Categories({ categories, entries, setCategories, goals, 
               return (
                 <div className="flex items-center gap-0.5">
                   {goal && (
-                    <span className="text-[10px] text-[#58a6ff] mr-1">{percent.toFixed(0)}%</span>
+                    <span className="text-[10px] font-semibold mr-1" style={{ color: 'var(--accent)' }}>{percent.toFixed(0)}%</span>
                   )}
                   <button
                     onClick={() => startGoal(cat)}
-                    className={`p-1 rounded transition-colors ${goal ? 'text-[#58a6ff] hover:bg-[#58a6ff15]' : 'text-[#484f58] hover:text-[#58a6ff] hover:bg-[#21262d]'}`}
+                    className="p-1.5 rounded-lg transition-colors duration-200"
+                    style={{ color: goal ? 'var(--accent)' : 'var(--text-muted)' }}
                     title={goal ? '修改目标' : '设定目标'}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245, 166, 35, 0.1)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   >
                     <Target size={14} />
                   </button>
                   <button
                     onClick={() => { setShowAdd(cat.id); setName(''); setColor(PRESET_COLORS[(categories.length + 1) % PRESET_COLORS.length]) }}
-                    className="p-1 text-[#484f58] hover:text-[#58a6ff] hover:bg-[#21262d] rounded transition-colors"
+                    className="p-1.5 rounded-lg transition-colors duration-200"
+                    style={{ color: 'var(--text-muted)' }}
                     title="添加子类"
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--teal)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
                   >
                     <FolderPlus size={14} />
                   </button>
                   <button
                     onClick={() => startEdit(cat)}
-                    className="p-1 text-[#484f58] hover:text-[#d29922] hover:bg-[#21262d] rounded transition-colors"
+                    className="p-1.5 rounded-lg transition-colors duration-200"
+                    style={{ color: 'var(--text-muted)' }}
                     title="编辑"
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--accent)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
                   >
                     <Pencil size={14} />
                   </button>
                   <button
                     onClick={() => handleDelete(cat.id)}
-                    className="p-1 text-[#484f58] hover:text-[#f85149] hover:bg-[#21262d] rounded transition-colors"
+                    className="p-1.5 rounded-lg transition-colors duration-200"
+                    style={{ color: 'var(--text-muted)' }}
                     title="删除"
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 107, 107, 0.1)'; e.currentTarget.style.color = 'var(--coral)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
                   >
                     <Trash2 size={14} />
                   </button>

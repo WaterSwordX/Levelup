@@ -1,10 +1,10 @@
-import { FolderTree, PenLine, Timer, BarChart3, Target, Award, Download, Clock, LayoutDashboard } from 'lucide-react'
+import { FolderTree, PenLine, Timer, BarChart3, Target, Award, Download, Clock, LayoutDashboard, Lightbulb } from 'lucide-react'
 
 const sections = [
   {
     icon: FolderTree,
     title: '技能分类',
-    color: '#58a6ff',
+    color: '#f5a623',
     steps: [
       '进入「分类」页面，点击右上角「添加大类」创建顶级分类，如：音乐、编程、绘画',
       '鼠标悬停在分类上，点击「+」图标可添加子分类，支持无限细分',
@@ -16,7 +16,7 @@ const sections = [
   {
     icon: PenLine,
     title: '记录事件',
-    color: '#3fb950',
+    color: '#4ecdc4',
     steps: [
       '进入「记录」页面',
       '从分类选择器中选择一个分类（可选任意层级）',
@@ -29,7 +29,7 @@ const sections = [
   {
     icon: Timer,
     title: '专注计时',
-    color: '#d29922',
+    color: '#a78bfa',
     steps: [
       '进入「专注」页面',
       '先选择一个技能分类',
@@ -43,7 +43,7 @@ const sections = [
   {
     icon: Target,
     title: '目标设定',
-    color: '#bc8cff',
+    color: '#ff6b6b',
     steps: [
       '在「分类」页面，鼠标悬停在任意分类上',
       '点击「靶心」图标打开目标设定',
@@ -55,7 +55,7 @@ const sections = [
   {
     icon: LayoutDashboard,
     title: '看板',
-    color: '#58a6ff',
+    color: '#f5a623',
     steps: [
       '首页「看板」展示你的整体数据概览',
       '顶部四个卡片：今日、本周、本月、总计投入时间',
@@ -67,7 +67,7 @@ const sections = [
   {
     icon: BarChart3,
     title: '统计图表',
-    color: '#f85149',
+    color: '#4ecdc4',
     steps: [
       '进入「统计」页面查看可视化数据',
       '饼图：各分类的时间占比',
@@ -78,7 +78,7 @@ const sections = [
   {
     icon: Award,
     title: '里程碑成就',
-    color: '#d29922',
+    color: '#a78bfa',
     steps: [
       '当某个技能累计达到特定时间（1h、10h、50h、100h、200h、500h、1000h 等）时，自动生成成就卡片',
       '成就卡片显示在看板页面的「最近达成的里程碑」区域',
@@ -89,7 +89,7 @@ const sections = [
   {
     icon: Download,
     title: '数据导出',
-    color: '#3fb950',
+    color: '#ff6b6b',
     steps: [
       '进入「统计」页面，右上角有两个导出按钮',
       '「导出CSV」：下载表格文件，可用 Excel 打开',
@@ -99,7 +99,7 @@ const sections = [
   {
     icon: Clock,
     title: '数据说明',
-    color: '#8b949e',
+    color: '#8a8d9b',
     steps: [
       '所有数据保存在浏览器本地（localStorage），不会上传到任何服务器',
       '清除浏览器缓存会导致数据丢失，建议定期使用「导出CSV」备份',
@@ -111,35 +111,81 @@ const sections = [
 
 export default function Guide() {
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-bold text-white">使用说明</h2>
-      <p className="text-sm text-[#8b949e]">Levelup 帮助你记录在各类技能上的时间投入，让积累看得见。基于刻意练习理念，追踪每一项技能的成长轨迹。</p>
+    <div className="space-y-6 animate-fade-in-up">
+      <div>
+        <h2
+          className="text-2xl font-bold"
+          style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+        >
+          使用说明
+        </h2>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+          Levelup 帮助你记录在各类技能上的时间投入，让积累看得见。基于刻意练习理念，追踪每一项技能的成长轨迹。
+        </p>
+      </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 stagger-children">
         {sections.map(section => (
-          <div key={section.title} className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 hover:border-[#484f58] transition-colors">
+          <div key={section.title} className="glass-card p-5 animate-fade-in-up">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg" style={{ backgroundColor: `${section.color}15` }}>
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{
+                  background: `${section.color}15`,
+                  boxShadow: `0 0 15px ${section.color}10`,
+                }}
+              >
                 <section.icon size={18} style={{ color: section.color }} />
               </div>
-              <h3 className="text-base font-semibold text-white">{section.title}</h3>
+              <h3
+                className="text-base font-semibold"
+                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+              >
+                {section.title}
+              </h3>
             </div>
-            <ol className="space-y-1.5 pl-9">
+            <ol className="space-y-2 pl-[52px]">
               {section.steps.map((step, i) => (
-                <li key={i} className="text-sm text-[#8b949e] list-decimal">{step}</li>
+                <li key={i} className="text-sm list-decimal" style={{ color: 'var(--text-secondary)' }}>
+                  {step}
+                </li>
               ))}
             </ol>
           </div>
         ))}
       </div>
 
-      <div className="bg-[#58a6ff10] border border-[#58a6ff25] rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-[#58a6ff] mb-2">小贴士</h3>
-        <ul className="space-y-1.5 text-sm text-[#8b949e]">
-          <li>· 每天坚持记录，哪怕只记录了「做了什么」也是有价值的</li>
-          <li>· 设定一个阶段性目标（如 100 小时），看着进度条前进会很有成就感</li>
-          <li>· 里程碑达成时记得保存成就卡片，记录你的成长轨迹</li>
-          <li>· 定期导出 CSV 备份数据，防止浏览器缓存丢失</li>
+      <div
+        className="glass-card p-5"
+        style={{
+          border: '1px solid rgba(245, 166, 35, 0.15)',
+          background: 'rgba(245, 166, 35, 0.03)',
+        }}
+      >
+        <h3
+          className="text-sm font-semibold flex items-center gap-2 mb-3"
+          style={{ color: 'var(--accent)' }}
+        >
+          <Lightbulb size={16} />
+          小贴士
+        </h3>
+        <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <li className="flex items-start gap-2">
+            <span style={{ color: 'var(--accent)' }}>·</span>
+            每天坚持记录，哪怕只记录了「做了什么」也是有价值的
+          </li>
+          <li className="flex items-start gap-2">
+            <span style={{ color: 'var(--accent)' }}>·</span>
+            设定一个阶段性目标（如 100 小时），看着进度条前进会很有成就感
+          </li>
+          <li className="flex items-start gap-2">
+            <span style={{ color: 'var(--accent)' }}>·</span>
+            里程碑达成时记得保存成就卡片，记录你的成长轨迹
+          </li>
+          <li className="flex items-start gap-2">
+            <span style={{ color: 'var(--accent)' }}>·</span>
+            定期导出 CSV 备份数据，防止浏览器缓存丢失
+          </li>
         </ul>
       </div>
     </div>

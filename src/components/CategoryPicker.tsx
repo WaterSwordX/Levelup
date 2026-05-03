@@ -21,28 +21,52 @@ export default function CategoryPicker({ categories, entries, selectedId, onSele
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-left hover:border-[#484f58] transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 text-sm text-left rounded-xl transition-all duration-200"
+        style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          border: `1px solid ${open ? 'var(--accent)' : 'var(--border)'}`,
+          boxShadow: open ? '0 0 0 3px var(--accent-glow)' : 'none',
+          backdropFilter: 'blur(8px)',
+        }}
       >
-        <span className={selectedId ? 'text-[#e6edf3]' : 'text-[#484f58]'}>
+        <span style={{ color: selectedId ? 'var(--text-primary)' : 'var(--text-muted)' }}>
           {selectedId ? selectedPath : '选择分类...'}
         </span>
         <div className="flex items-center gap-1">
           {selectedId && (
             <span
-              className="p-0.5 hover:bg-[#30363d] rounded"
+              className="p-1 rounded-lg transition-colors duration-200"
+              style={{ color: 'var(--text-muted)' }}
               onClick={e => { e.stopPropagation(); onSelect(null) }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
-              <X size={14} className="text-[#484f58]" />
+              <X size={14} />
             </span>
           )}
-          <ChevronDown size={16} className={`text-[#484f58] transition-transform ${open ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            size={16}
+            className="transition-transform duration-200"
+            style={{
+              color: 'var(--text-muted)',
+              transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}
+          />
         </div>
       </button>
 
       {open && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl max-h-60 overflow-y-auto p-2">
+        <div
+          className="absolute z-50 top-full left-0 right-0 mt-2 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2 animate-fade-in"
+          style={{
+            background: 'rgba(21, 23, 30, 0.95)',
+            border: '1px solid var(--border)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+          }}
+        >
           {categories.length === 0 ? (
-            <p className="text-sm text-[#484f58] p-2">暂无分类，请先添加</p>
+            <p className="text-sm p-3" style={{ color: 'var(--text-muted)' }}>暂无分类，请先添加</p>
           ) : (
             <CategoryTree
               categories={categories}
