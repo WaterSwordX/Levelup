@@ -1,0 +1,59 @@
+import type { Category, TimeEntry } from '../types'
+import { useState } from 'react'
+import CategoryTree from './CategoryTree'
+import { getCategoryPath } from '../store'
+import { ChevronDown, X } from 'lucide-react'
+
+interface Props {
+  categories: Category[]
+  entries: TimeEntry[]
+  selectedId: string | null
+  onSelect: (id: string | null) => void
+}
+
+export default function CategoryPicker({ categories, entries, selectedId, onSelect }: Props) {
+  const [open, setOpen] = useState(false)
+
+  const selectedPath = selectedId ? getCategoryPath(selectedId, categories) : ''
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-left hover:border-gray-400 transition-colors"
+      >
+        <span className={selectedId ? 'text-gray-800' : 'text-gray-400'}>
+          {selectedId ? selectedPath : '选择分类...'}
+        </span>
+        <div className="flex items-center gap-1">
+          {selectedId && (
+            <span
+              className="p-0.5 hover:bg-gray-100 rounded"
+              onClick={e => { e.stopPropagation(); onSelect(null) }}
+            >
+              <X size={14} className="text-gray-400" />
+            </span>
+          )}
+          <ChevronDown size={16} className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </div>
+      </button>
+
+      {open && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto p-2">
+          {categories.length === 0 ? (
+            <p className="text-sm text-gray-400 p-2">暂无分类，请先添加</p>
+          ) : (
+            <CategoryTree
+              categories={categories}
+              entries={entries}
+              showTime={false}
+              onSelect={(cat) => { onSelect(cat.id); setOpen(false) }}
+              selectedId={selectedId ?? undefined}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
