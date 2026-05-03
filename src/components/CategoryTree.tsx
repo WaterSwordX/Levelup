@@ -65,14 +65,16 @@ function CategoryNode({ category, categories, entries, onSelect, selectedId, lev
   return (
     <div>
       <div
-        className={`flex items-center gap-2 py-2 px-2 rounded-lg cursor-pointer transition-colors group ${
-          isSelected ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+        className={`flex items-center gap-2 py-2 px-2 rounded-lg cursor-pointer transition-all duration-150 group ${
+          isSelected
+            ? 'bg-[#58a6ff15] text-[#58a6ff] shadow-[inset_0_0_0_1px_rgba(88,166,255,0.2)]'
+            : 'hover:bg-[#1c2128] text-[#e6edf3]'
         }`}
         onClick={() => onSelect?.(category)}
       >
         {hasChildren ? (
           <button
-            className="p-0.5 hover:bg-gray-200 rounded"
+            className="p-0.5 hover:bg-[#30363d] rounded transition-colors"
             onClick={e => { e.stopPropagation(); setExpanded(!expanded) }}
           >
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -81,12 +83,12 @@ function CategoryNode({ category, categories, entries, onSelect, selectedId, lev
           <span className="w-5" />
         )}
         <span
-          className="w-3 h-3 rounded-full shrink-0"
+          className="w-3 h-3 rounded-full shrink-0 shadow-sm"
           style={{ backgroundColor: category.color }}
         />
         <span className="text-sm font-medium flex-1 truncate">{category.name}</span>
         {showTime && totalTime > 0 && (
-          <span className="text-xs text-gray-400 flex items-center gap-1">
+          <span className="text-xs text-[#484f58] flex items-center gap-1">
             <Clock size={12} />
             {formatMinutes(totalTime)}
           </span>

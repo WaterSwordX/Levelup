@@ -11,12 +11,12 @@ const navItems = [
 
 export default function Layout() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#0d1117] flex flex-col md:flex-row">
       {/* 电脑端侧边栏 */}
-      <nav className="hidden md:flex flex-col w-56 bg-white border-r border-gray-200 p-4 gap-1 shrink-0">
-        <div className="flex items-center justify-between mb-4 px-2">
-          <h1 className="text-lg font-bold text-gray-800">Levelup</h1>
-          <NavLink to="/guide" className="text-gray-400 hover:text-gray-600 transition-colors">
+      <nav className="hidden md:flex flex-col w-56 bg-[#161b22] border-r border-[#30363d] p-4 gap-1 shrink-0">
+        <div className="flex items-center justify-between mb-5 px-2">
+          <h1 className="text-lg font-bold text-white tracking-tight">Levelup</h1>
+          <NavLink to="/guide" className="text-[#484f58] hover:text-[#8b949e] transition-colors">
             <HelpCircle size={18} />
           </NavLink>
         </div>
@@ -26,10 +26,10 @@ export default function Layout() {
             to={item.to}
             end={item.to === '/'}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-[#58a6ff15] text-[#58a6ff] shadow-[inset_0_0_0_1px_rgba(88,166,255,0.2)]'
+                  : 'text-[#8b949e] hover:bg-[#1c2128] hover:text-[#e6edf3]'
               }`
             }
           >
@@ -47,7 +47,7 @@ export default function Layout() {
       </main>
 
       {/* 手机端底部导航 */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center h-16 z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#161b22] border-t border-[#30363d] flex justify-around items-center h-16 z-50">
         {navItems.map(item => (
           <NavLink
             key={item.to}
@@ -55,7 +55,7 @@ export default function Layout() {
             end={item.to === '/'}
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 px-2 py-1 text-xs transition-colors ${
-                isActive ? 'text-blue-600' : 'text-gray-400'
+                isActive ? 'text-[#58a6ff]' : 'text-[#484f58]'
               }`
             }
           >
@@ -67,7 +67,7 @@ export default function Layout() {
           to="/guide"
           className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1 text-xs transition-colors ${
-              isActive ? 'text-blue-600' : 'text-gray-400'
+              isActive ? 'text-[#58a6ff]' : 'text-[#484f58]'
             }`
           }
         >

@@ -47,37 +47,38 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
     })
     .filter(Boolean) as { cat: Category; goal: Goal; total: number }[]
 
-  // 最近达成的里程碑（最多3个）
   const recentMilestones = [...milestones]
     .sort((a, b) => new Date(b.achievedAt).getTime() - new Date(a.achievedAt).getTime())
     .slice(0, 3)
 
+  const statCards = [
+    { label: '今日', value: todayMinutes, icon: Calendar, color: '#58a6ff' },
+    { label: '本周', value: weekMinutes, icon: TrendingUp, color: '#3fb950' },
+    { label: '本月', value: monthMinutes, icon: Clock, color: '#d29922' },
+    { label: '总计', value: totalMinutes, icon: Clock, color: '#bc8cff' },
+  ]
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-bold text-gray-800">看板</h2>
+    <div className="space-y-5">
+      <h2 className="text-lg font-bold text-white">看板</h2>
 
       {/* 概览卡片 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: '今日', value: todayMinutes, icon: Calendar, color: 'text-blue-600 bg-blue-50' },
-          { label: '本周', value: weekMinutes, icon: TrendingUp, color: 'text-green-600 bg-green-50' },
-          { label: '本月', value: monthMinutes, icon: Clock, color: 'text-amber-600 bg-amber-50' },
-          { label: '总计', value: totalMinutes, icon: Clock, color: 'text-purple-600 bg-purple-50' },
-        ].map(item => (
-          <div key={item.label} className="bg-white rounded-xl border border-gray-200 p-3">
-            <div className={`inline-flex p-1.5 rounded-lg ${item.color} mb-2`}>
-              <item.icon size={16} />
+        {statCards.map(item => (
+          <div key={item.label} className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 hover:border-[#484f58] transition-colors">
+            <div className="inline-flex p-1.5 rounded-lg mb-2" style={{ backgroundColor: `${item.color}15` }}>
+              <item.icon size={16} style={{ color: item.color }} />
             </div>
-            <div className="text-lg font-bold text-gray-800">{formatMinutes(item.value)}</div>
-            <div className="text-xs text-gray-400">{item.label}</div>
+            <div className="text-lg font-bold text-white">{formatMinutes(item.value)}</div>
+            <div className="text-xs text-[#484f58]">{item.label}</div>
           </div>
         ))}
       </div>
 
       {/* 最近里程碑 */}
       {recentMilestones.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-600 flex items-center gap-1.5">
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-[#8b949e] flex items-center gap-1.5">
             <Award size={14} />
             最近达成的里程碑
           </h3>
@@ -101,8 +102,8 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
 
       {/* 目标进度 */}
       {categoriesWithGoals.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-600 flex items-center gap-1.5">
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-[#8b949e] flex items-center gap-1.5">
             <Target size={14} />
             目标进度
           </h3>
@@ -112,26 +113,30 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               const targetH = Math.floor(goal.targetMinutes / 60)
               const targetLabel = targetH >= 1 ? `${targetH}小时` : `${goal.targetMinutes}分钟`
               return (
-                <div key={cat.id} className="bg-white rounded-xl border border-gray-200 p-3">
+                <div key={cat.id} className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 hover:border-[#484f58] transition-colors">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                      <span className="text-sm font-medium text-gray-800">{cat.name}</span>
+                      <span className="text-sm font-medium text-[#e6edf3]">{cat.name}</span>
                     </div>
-                    <span className="text-xs text-gray-400">目标 {targetLabel}</span>
+                    <span className="text-xs text-[#484f58]">目标 {targetLabel}</span>
                   </div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-gray-500">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-[#8b949e]">
                       {formatMinutes(total)} / {formatMinutes(goal.targetMinutes)}
                     </span>
                     <span className="text-xs font-medium" style={{ color: cat.color }}>
                       {percent.toFixed(1)}%
                     </span>
                   </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-[#21262d] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${percent}%`, backgroundColor: cat.color }}
+                      style={{
+                        width: `${percent}%`,
+                        backgroundColor: cat.color,
+                        boxShadow: `0 0 8px ${cat.color}40`,
+                      }}
                     />
                   </div>
                 </div>
@@ -143,8 +148,8 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
 
       {/* 各大类累计时间 */}
       {topCategories.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-600">技能总览</h3>
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-[#8b949e]">技能总览</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {topCategories.map(cat => {
               const total = getCategoryTotalTime(cat.id, entries, categories)
@@ -156,23 +161,27 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                 ? Math.min((total / goal.targetMinutes) * 100, 100)
                 : (total / maxTime) * 100
               return (
-                <div key={cat.id} className="bg-white rounded-xl border border-gray-200 p-3">
+                <div key={cat.id} className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 hover:border-[#484f58] transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                      <span className="text-sm font-medium text-gray-800">{cat.name}</span>
+                      <span className="text-sm font-medium text-[#e6edf3]">{cat.name}</span>
                     </div>
-                    <span className="text-sm font-bold text-gray-600">{formatMinutes(total)}</span>
+                    <span className="text-sm font-bold text-[#8b949e]">{formatMinutes(total)}</span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-[#21262d] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(percent, 100)}%`, backgroundColor: cat.color }}
+                      style={{
+                        width: `${Math.min(percent, 100)}%`,
+                        backgroundColor: cat.color,
+                        boxShadow: `0 0 6px ${cat.color}30`,
+                      }}
                     />
                   </div>
                   {goal && (
                     <div className="text-right mt-1">
-                      <span className="text-[10px] text-gray-400">{percent.toFixed(1)}%</span>
+                      <span className="text-[10px] text-[#484f58]">{percent.toFixed(1)}%</span>
                     </div>
                   )}
                 </div>
@@ -184,21 +193,21 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
 
       {/* 最近记录 */}
       {recentEntries.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-600">最近记录</h3>
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-[#8b949e]">最近记录</h3>
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl divide-y divide-[#21262d]">
             {recentEntries.map(entry => {
               const cat = categories.find(c => c.id === entry.categoryId)
               return (
-                <div key={entry.id} className="px-4 py-3 flex items-center gap-3">
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? '#9ca3af' }} />
+                <div key={entry.id} className="px-4 py-3 flex items-center gap-3 hover:bg-[#1c2128] transition-colors">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? '#484f58' }} />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-gray-800 truncate">
+                    <div className="text-sm text-[#e6edf3] truncate">
                       {entry.description || getCategoryPath(entry.categoryId, categories)}
                     </div>
-                    <div className="text-xs text-gray-400">{entry.date}</div>
+                    <div className="text-xs text-[#484f58]">{entry.date}</div>
                   </div>
-                  <span className="text-xs text-gray-500 font-medium shrink-0">{formatMinutes(entry.duration)}</span>
+                  <span className="text-xs text-[#8b949e] font-medium shrink-0">{formatMinutes(entry.duration)}</span>
                 </div>
               )
             })}
@@ -208,10 +217,10 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
 
       {/* 空状态 */}
       {categories.length === 0 && entries.length === 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="text-4xl mb-3">📊</div>
-          <h3 className="text-base font-medium text-gray-700 mb-1">欢迎使用 Levelup</h3>
-          <p className="text-sm text-gray-400">
+        <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-12 text-center">
+          <div className="text-5xl mb-4">🚀</div>
+          <h3 className="text-base font-semibold text-white mb-2">欢迎使用 Levelup</h3>
+          <p className="text-sm text-[#8b949e] max-w-sm mx-auto">
             记录你的技能成长时间，让积累看得见。先去「分类」页面添加你的技能分类，然后开始记录吧。
           </p>
         </div>
