@@ -210,9 +210,9 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       {categories.length === 0 && entries.length === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <div className="text-4xl mb-3">📊</div>
-          <h3 className="text-base font-medium text-gray-700 mb-1">欢迎使用技能时间追踪器</h3>
+          <h3 className="text-base font-medium text-gray-700 mb-1">欢迎使用 Levelup</h3>
           <p className="text-sm text-gray-400">
-            先去"分类"页面添加你的技能分类，然后开始记录吧
+            记录你的技能成长时间，让积累看得见。先去「分类」页面添加你的技能分类，然后开始记录吧。
           </p>
         </div>
       )}

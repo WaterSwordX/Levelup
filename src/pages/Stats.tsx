@@ -187,7 +187,7 @@ export default function Stats({ categories, entries }: Props) {
   <table><thead><tr><th>分类</th><th style="text-align:right">累计时间</th><th style="text-align:right">占比</th></tr></thead><tbody>${categorySummary}</tbody></table>
   <h2>详细记录</h2>
   <table><thead><tr><th>日期</th><th>分类</th><th>描述</th><th style="text-align:right">时长</th></tr></thead><tbody>${entryRows}</tbody></table>
-  <div class="footer">技能时间追踪器 · 数据导出</div>
+  <div class="footer">Levelup · 数据导出</div>
 </body>
 </html>`
 

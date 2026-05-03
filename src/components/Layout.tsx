@@ -15,7 +15,7 @@ export default function Layout() {
       {/* 电脑端侧边栏 */}
       <nav className="hidden md:flex flex-col w-56 bg-white border-r border-gray-200 p-4 gap-1 shrink-0">
         <div className="flex items-center justify-between mb-4 px-2">
-          <h1 className="text-lg font-bold text-gray-800">技能追踪器</h1>
+          <h1 className="text-lg font-bold text-gray-800">Levelup</h1>
           <NavLink to="/guide" className="text-gray-400 hover:text-gray-600 transition-colors">
             <HelpCircle size={18} />
           </NavLink>

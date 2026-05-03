@@ -130,7 +130,7 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
             <span className="text-xs text-gray-400">
               {new Date(milestone.achievedAt).toLocaleDateString('zh-CN')} 达成
             </span>
-            <span className="text-xs text-gray-400">技能时间追踪器</span>
+            <span className="text-xs text-gray-400">Levelup</span>
           </div>
         </div>
       </div>

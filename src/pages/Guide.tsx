@@ -113,7 +113,7 @@ export default function Guide() {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-bold text-gray-800">使用说明</h2>
-      <p className="text-sm text-gray-500">技能时间追踪器帮助你记录在各类技能上的时间投入，让积累看得见。</p>
+      <p className="text-sm text-gray-500">Levelup 帮助你记录在各类技能上的时间投入，让积累看得见。基于刻意练习理念，追踪每一项技能的成长轨迹。</p>
 
       <div className="space-y-3">
         {sections.map(section => (
