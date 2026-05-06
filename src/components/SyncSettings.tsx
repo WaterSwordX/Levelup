@@ -1,89 +1,80 @@
 import { useState, useEffect } from 'react'
 import type { SyncData, SyncStatus } from '../sync'
 import {
-  getStoredToken, setStoredToken, getStoredGistId, setStoredGistId,
-  getLastSyncTime, isSyncConfigured, verifyToken,
-  createGist, syncToCloud, syncFromCloud, disconnectSync,
+  getCurrentUser, onAuthStateChange, signOut,
+  pushToCloud, pullFromCloud, getLastSyncTime,
 } from '../sync'
 import { exportAllData, importAllData } from '../store'
-import { Cloud, CloudOff, Upload, Download, Unlink, Eye, EyeOff, Check, Loader2, AlertCircle, ExternalLink } from 'lucide-react'
+import { isSupabaseConfigured } from '../lib/supabase'
+import AuthPanel from './AuthPanel'
+import type { User } from '@supabase/supabase-js'
+import { Cloud, Upload, Download, LogOut, Loader2, Check, AlertCircle, RefreshCw } from 'lucide-react'
 
 export default function SyncSettings() {
-  const [token, setToken] = useState('')
-  const [showToken, setShowToken] = useState(false)
-  const [connected, setConnected] = useState(false)
-  const [username, setUsername] = useState('')
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState<SyncStatus>('idle')
   const [lastSync, setLastSync] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    const stored = getStoredToken()
-    if (stored) {
-      setToken(stored)
-      setConnected(isSyncConfigured())
+    if (!isSupabaseConfigured()) {
+      setLoading(false)
+      return
     }
-    setLastSync(getLastSyncTime())
+
+    getCurrentUser().then(u => {
+      setUser(u)
+      setLoading(false)
+    })
+
+    const unsub = onAuthStateChange(u => setUser(u))
+    return unsub
   }, [])
+
+  useEffect(() => {
+    setLastSync(getLastSyncTime())
+  }, [user])
 
   const clearMessages = () => {
     setError('')
     setMessage('')
   }
 
-  const handleConnect = async () => {
-    if (!token.trim()) return
-    clearMessages()
-    setStatus('syncing')
-
-    try {
-      const result = await verifyToken(token.trim())
-      if (!result.valid) {
-        setError('Token 无效，请检查后重试')
-        setStatus('error')
-        return
-      }
-
-      setStoredToken(token.trim())
-      setUsername(result.username || '')
-
-      // Check if gist already exists
-      const gistId = getStoredGistId()
-      if (gistId) {
-        // Try to read existing gist
-        try {
-          await syncFromCloud()
-          setConnected(true)
-          setMessage(`已连接到 GitHub 账号 @${result.username}`)
-          setLastSync(getLastSyncTime())
-        } catch {
-          // Gist not found, offer to create new
-          await handleCreateNew()
-        }
-      } else {
-        // Create new gist with current local data
-        await handleCreateNew()
-      }
-
-      setStatus('success')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '连接失败')
-      setStatus('error')
-    }
+  const handleAuthSuccess = () => {
+    // After login, auto-sync
+    handleAutoSync()
   }
 
-  const handleCreateNew = async () => {
-    const localData: SyncData = {
-      ...exportAllData(),
-      version: 1,
-      syncedAt: new Date().toISOString(),
+  const handleAutoSync = async () => {
+    clearMessages()
+    setStatus('syncing')
+    try {
+      const localData: SyncData = {
+        ...exportAllData(),
+        synced_at: new Date().toISOString(),
+      }
+
+      const cloudData = await pullFromCloud()
+
+      if (!cloudData) {
+        // No cloud data, push local
+        await pushToCloud(localData)
+        setMessage('首次同步完成，本地数据已上传')
+      } else {
+        // Cloud has data, pull it
+        importAllData(cloudData)
+        setMessage('数据已从云端同步')
+        setTimeout(() => window.location.reload(), 800)
+      }
+
+      setLastSync(getLastSyncTime())
+      setStatus('success')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '同步失败')
+      setStatus('error')
     }
-    const newId = await createGist(token.trim(), localData)
-    setStoredGistId(newId)
-    setConnected(true)
-    setLastSync(getLastSyncTime())
-    setMessage('已创建新的同步 Gist，本地数据已上传')
   }
 
   const handlePush = async () => {
@@ -92,10 +83,9 @@ export default function SyncSettings() {
     try {
       const data: SyncData = {
         ...exportAllData(),
-        version: 1,
-        syncedAt: new Date().toISOString(),
+        synced_at: new Date().toISOString(),
       }
-      await syncToCloud(data)
+      await pushToCloud(data)
       setLastSync(getLastSyncTime())
       setMessage('数据已推送到云端')
       setStatus('success')
@@ -109,169 +99,132 @@ export default function SyncSettings() {
     clearMessages()
     setStatus('syncing')
     try {
-      const cloudData = await syncFromCloud()
+      const cloudData = await pullFromCloud()
+      if (!cloudData) {
+        setMessage('云端暂无数据')
+        setStatus('success')
+        return
+      }
       importAllData(cloudData)
       setLastSync(getLastSyncTime())
-      setMessage('数据已从云端拉取，刷新页面查看')
+      setMessage('数据已从云端拉取')
       setStatus('success')
-      // Reload to reflect changes
-      setTimeout(() => window.location.reload(), 1000)
+      setTimeout(() => window.location.reload(), 800)
     } catch (err) {
       setError(err instanceof Error ? err.message : '拉取失败')
       setStatus('error')
     }
   }
 
-  const handleDisconnect = () => {
-    disconnectSync()
-    setConnected(false)
-    setToken('')
-    setUsername('')
+  const handleSignOut = async () => {
+    await signOut()
+    setUser(null)
     setLastSync(null)
-    setMessage('已断开同步连接')
-    setStatus('idle')
+    setMessage('已退出登录')
   }
 
   const syncing = status === 'syncing'
 
+  // Not configured
+  if (!isSupabaseConfigured()) {
+    return (
+      <div className="glass-card p-5">
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          数据同步功能需要配置 Supabase。请在代码中设置 Supabase URL 和 Anon Key。
+        </p>
+      </div>
+    )
+  }
+
+  // Loading
+  if (loading) {
+    return (
+      <div className="glass-card p-8 flex items-center justify-center">
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
+      </div>
+    )
+  }
+
+  // Not logged in
+  if (!user) {
+    return <AuthPanel onAuthSuccess={handleAuthSuccess} />
+  }
+
+  // Logged in
   return (
-    <div className="space-y-6">
-      {/* Connection Status */}
+    <div className="space-y-4">
+      {/* User Info */}
       <div
         className="glass-card p-5"
-        style={{
-          border: connected
-            ? '1px solid rgba(78, 205, 196, 0.2)'
-            : '1px solid var(--border)',
-        }}
+        style={{ border: '1px solid rgba(78, 205, 196, 0.2)' }}
       >
-        <div className="flex items-center gap-3 mb-4">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{
-              background: connected ? 'rgba(78, 205, 196, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-            }}
-          >
-            {connected ? (
-              <Cloud size={20} style={{ color: 'var(--teal)' }} />
-            ) : (
-              <CloudOff size={20} style={{ color: 'var(--text-muted)' }} />
-            )}
-          </div>
-          <div>
-            <h3
-              className="text-sm font-semibold"
-              style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(78, 205, 196, 0.1)' }}
             >
-              {connected ? `已连接 @${username}` : 'GitHub Gist 同步'}
-            </h3>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {connected
-                ? lastSync
-                  ? `上次同步: ${new Date(lastSync).toLocaleString('zh-CN')}`
-                  : '已连接，等待首次同步'
-                : '通过 GitHub Gist 跨设备同步你的数据'}
-            </p>
+              <Cloud size={20} style={{ color: 'var(--teal)' }} />
+            </div>
+            <div>
+              <h3
+                className="text-sm font-semibold"
+                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+              >
+                已登录
+              </h3>
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                {user.email}
+              </p>
+            </div>
           </div>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all duration-200"
+            style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--coral)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
+          >
+            <LogOut size={14} />
+            退出
+          </button>
         </div>
 
-        {/* Token Input */}
-        {!connected && (
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                GitHub Personal Access Token
-              </label>
-              <div className="relative">
-                <input
-                  type={showToken ? 'text' : 'password'}
-                  value={token}
-                  onChange={e => setToken(e.target.value)}
-                  placeholder="ghp_xxxxxxxxxxxx"
-                  className="input-field pr-10"
-                  onKeyDown={e => e.key === 'Enter' && handleConnect()}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowToken(!showToken)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  {showToken ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-
-            <div
-              className="text-xs p-3 rounded-xl"
-              style={{ background: 'rgba(255, 255, 255, 0.02)', color: 'var(--text-muted)' }}
-            >
-              <p className="mb-1">如何获取 Token：</p>
-              <ol className="list-decimal pl-4 space-y-0.5">
-                <li>打开 GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens</li>
-                <li>创建新 Token，权限选择 Gist（读写）</li>
-                <li>复制 Token 粘贴到上方输入框</li>
-              </ol>
-              <a
-                href="https://github.com/settings/tokens?type=beta"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 mt-2 transition-colors duration-200"
-                style={{ color: 'var(--accent)' }}
-              >
-                前往创建 Token <ExternalLink size={12} />
-              </a>
-            </div>
-
-            <button
-              onClick={handleConnect}
-              disabled={!token.trim() || syncing}
-              className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm w-full justify-center"
-            >
-              {syncing ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Cloud size={16} />
-              )}
-              连接
-            </button>
-          </div>
+        {lastSync && (
+          <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+            上次同步: {new Date(lastSync).toLocaleString('zh-CN')}
+          </p>
         )}
 
-        {/* Connected Actions */}
-        {connected && (
-          <div className="flex gap-2">
-            <button
-              onClick={handlePush}
-              disabled={syncing}
-              className="btn-ghost flex items-center gap-2 px-4 py-2 text-xs flex-1 justify-center"
-            >
-              {syncing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-              推送到云端
-            </button>
-            <button
-              onClick={handlePull}
-              disabled={syncing}
-              className="btn-ghost flex items-center gap-2 px-4 py-2 text-xs flex-1 justify-center"
-            >
-              {syncing ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-              从云端拉取
-            </button>
-            <button
-              onClick={handleDisconnect}
-              disabled={syncing}
-              className="flex items-center gap-2 px-3 py-2 text-xs rounded-xl transition-all duration-200"
-              style={{
-                color: 'var(--coral)',
-                border: '1px solid rgba(255, 107, 107, 0.2)',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 107, 107, 0.1)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-            >
-              <Unlink size={14} />
-            </button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <button
+            onClick={handlePush}
+            disabled={syncing}
+            className="btn-ghost flex items-center gap-2 px-4 py-2 text-xs flex-1 justify-center"
+          >
+            {syncing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+            推送到云端
+          </button>
+          <button
+            onClick={handlePull}
+            disabled={syncing}
+            className="btn-ghost flex items-center gap-2 px-4 py-2 text-xs flex-1 justify-center"
+          >
+            {syncing ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+            从云端拉取
+          </button>
+          <button
+            onClick={handleAutoSync}
+            disabled={syncing}
+            className="flex items-center gap-2 px-3 py-2 text-xs rounded-xl transition-all duration-200"
+            style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+            title="自动同步"
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+          >
+            <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
+          </button>
+        </div>
       </div>
 
       {/* Messages */}

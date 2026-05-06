@@ -1,200 +1,159 @@
 import type { Category, TimeEntry, Goal, Milestone } from './types'
+import { getSupabaseClient, isSupabaseConfigured } from './lib/supabase'
+import type { User } from '@supabase/supabase-js'
 
-const GIST_ID_KEY = 'skill-tracker-gist-id'
-const GITHUB_TOKEN_KEY = 'skill-tracker-github-token'
 const LAST_SYNC_KEY = 'skill-tracker-last-sync'
-const GIST_FILENAME = 'levelup-data.json'
+const SYNCED_AT_KEY = 'skill-tracker-synced-at'
 
 export interface SyncData {
   categories: Category[]
   entries: TimeEntry[]
   goals: Goal[]
   milestones: Milestone[]
-  version: number
-  syncedAt: string
+  synced_at: string
 }
 
 export type SyncStatus = 'idle' | 'syncing' | 'success' | 'error'
 
-// Token management
-export function getStoredToken(): string | null {
-  return localStorage.getItem(GITHUB_TOKEN_KEY)
+// ===== Auth =====
+
+export async function signUp(email: string, password: string): Promise<{ user: User | null; error: string | null }> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return { user: null, error: '请先配置 Supabase' }
+
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  if (error) return { user: null, error: error.message }
+  return { user: data.user, error: null }
 }
 
-export function setStoredToken(token: string | null) {
-  if (token) {
-    localStorage.setItem(GITHUB_TOKEN_KEY, token)
-  } else {
-    localStorage.removeItem(GITHUB_TOKEN_KEY)
+export async function signIn(email: string, password: string): Promise<{ user: User | null; error: string | null }> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return { user: null, error: '请先配置 Supabase' }
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) return { user: null, error: error.message }
+  return { user: data.user, error: null }
+}
+
+export async function signOut(): Promise<void> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return
+  await supabase.auth.signOut()
+  localStorage.removeItem(SYNCED_AT_KEY)
+  localStorage.removeItem(LAST_SYNC_KEY)
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return null
+
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
+}
+
+export function onAuthStateChange(callback: (user: User | null) => void) {
+  const supabase = getSupabaseClient()
+  if (!supabase) return () => {}
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    callback(session?.user ?? null)
+  })
+
+  return () => subscription.unsubscribe()
+}
+
+// ===== Data Sync =====
+
+export async function pushToCloud(data: SyncData): Promise<void> {
+  const supabase = getSupabaseClient()
+  if (!supabase) throw new Error('请先配置 Supabase')
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('请先登录')
+
+  const { error } = await supabase
+    .from('user_data')
+    .upsert({
+      user_id: user.id,
+      categories: data.categories,
+      entries: data.entries,
+      goals: data.goals,
+      milestones: data.milestones,
+      synced_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' })
+
+  if (error) throw new Error(`同步失败: ${error.message}`)
+  setLastSyncTime()
+}
+
+export async function pullFromCloud(): Promise<SyncData | null> {
+  const supabase = getSupabaseClient()
+  if (!supabase) throw new Error('请先配置 Supabase')
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('请先登录')
+
+  const { data, error } = await supabase
+    .from('user_data')
+    .select('categories, entries, goals, milestones, synced_at')
+    .eq('user_id', user.id)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') return null // No data found
+    throw new Error(`拉取失败: ${error.message}`)
+  }
+
+  setLastSyncTime()
+  return data as SyncData
+}
+
+export async function autoSync(localData: SyncData): Promise<{ action: 'pushed' | 'pulled' | 'conflict' | 'none'; cloudData?: SyncData }> {
+  if (!isSupabaseConfigured()) return { action: 'none' }
+
+  const user = await getCurrentUser()
+  if (!user) return { action: 'none' }
+
+  try {
+    const cloudData = await pullFromCloud()
+
+    if (!cloudData) {
+      // No cloud data, push local
+      await pushToCloud(localData)
+      return { action: 'pushed' }
+    }
+
+    const localSyncedAt = localStorage.getItem(SYNCED_AT_KEY)
+    const cloudTime = new Date(cloudData.synced_at).getTime()
+    const localTime = localSyncedAt ? new Date(localSyncedAt).getTime() : 0
+
+    if (localTime > cloudTime) {
+      // Local has newer changes
+      await pushToCloud(localData)
+      return { action: 'pushed' }
+    } else if (cloudTime > localTime) {
+      // Cloud has newer changes
+      return { action: 'conflict', cloudData }
+    }
+
+    return { action: 'none' }
+  } catch {
+    return { action: 'none' }
   }
 }
 
-// Gist ID management
-export function getStoredGistId(): string | null {
-  return localStorage.getItem(GIST_ID_KEY)
-}
+// ===== Helpers =====
 
-export function setStoredGistId(id: string | null) {
-  if (id) {
-    localStorage.setItem(GIST_ID_KEY, id)
-  } else {
-    localStorage.removeItem(GIST_ID_KEY)
-  }
-}
-
-// Last sync time
 export function getLastSyncTime(): string | null {
   return localStorage.getItem(LAST_SYNC_KEY)
 }
 
 function setLastSyncTime() {
   localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString())
+  localStorage.setItem(SYNCED_AT_KEY, new Date().toISOString())
 }
 
-// Check if sync is configured
-export function isSyncConfigured(): boolean {
-  return !!getStoredToken() && !!getStoredGistId()
-}
-
-// GitHub Gist API
-const GIST_API = 'https://api.github.com/gists'
-
-async function gistHeaders(token: string): Promise<HeadersInit> {
-  return {
-    Authorization: `token ${token}`,
-    Accept: 'application/vnd.github.v3+json',
-    'Content-Type': 'application/json',
-  }
-}
-
-export async function createGist(token: string, data: SyncData): Promise<string> {
-  const resp = await fetch(GIST_API, {
-    method: 'POST',
-    headers: await gistHeaders(token),
-    body: JSON.stringify({
-      description: 'Levelup — skill tracker data (auto-sync)',
-      public: false,
-      files: {
-        [GIST_FILENAME]: {
-          content: JSON.stringify(data, null, 2),
-        },
-      },
-    }),
-  })
-
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}))
-    throw new Error(`创建 Gist 失败: ${resp.status} ${err.message || ''}`)
-  }
-
-  const result = await resp.json()
-  return result.id
-}
-
-export async function updateGist(token: string, gistId: string, data: SyncData): Promise<void> {
-  const resp = await fetch(`${GIST_API}/${gistId}`, {
-    method: 'PATCH',
-    headers: await gistHeaders(token),
-    body: JSON.stringify({
-      files: {
-        [GIST_FILENAME]: {
-          content: JSON.stringify(data, null, 2),
-        },
-      },
-    }),
-  })
-
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}))
-    throw new Error(`更新 Gist 失败: ${resp.status} ${err.message || ''}`)
-  }
-}
-
-export async function readGist(token: string, gistId: string): Promise<SyncData> {
-  const resp = await fetch(`${GIST_API}/${gistId}`, {
-    headers: await gistHeaders(token),
-  })
-
-  if (!resp.ok) {
-    if (resp.status === 404) throw new Error('Gist 不存在，请检查 Gist ID')
-    throw new Error(`读取 Gist 失败: ${resp.status}`)
-  }
-
-  const result = await resp.json()
-  const file = result.files?.[GIST_FILENAME]
-  if (!file) throw new Error('Gist 中未找到 Levelup 数据文件')
-
-  return JSON.parse(file.content)
-}
-
-// Verify token is valid
-export async function verifyToken(token: string): Promise<{ valid: boolean; username?: string }> {
-  try {
-    const resp = await fetch('https://api.github.com/user', {
-      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' },
-    })
-    if (!resp.ok) return { valid: false }
-    const user = await resp.json()
-    return { valid: true, username: user.login }
-  } catch {
-    return { valid: false }
-  }
-}
-
-// Push local data to cloud
-export async function syncToCloud(data: SyncData): Promise<void> {
-  const token = getStoredToken()
-  if (!token) throw new Error('未配置 GitHub Token')
-
-  const gistId = getStoredGistId()
-  if (gistId) {
-    await updateGist(token, gistId, data)
-  } else {
-    const newId = await createGist(token, data)
-    setStoredGistId(newId)
-  }
-  setLastSyncTime()
-}
-
-// Pull data from cloud
-export async function syncFromCloud(): Promise<SyncData> {
-  const token = getStoredToken()
-  const gistId = getStoredGistId()
-  if (!token || !gistId) throw new Error('未配置同步')
-
-  const data = await readGist(token, gistId)
-  setLastSyncTime()
-  return data
-}
-
-// Auto sync: compare timestamps and decide push/pull
-export async function autoSync(localData: SyncData): Promise<{ action: 'pushed' | 'pulled' | 'none'; data?: SyncData }> {
-  if (!isSyncConfigured()) return { action: 'none' }
-
-  try {
-    const cloudData = await syncFromCloud()
-    const localTime = new Date(localData.syncedAt).getTime()
-    const cloudTime = new Date(cloudData.syncedAt).getTime()
-
-    if (localTime > cloudTime) {
-      // Local is newer, push
-      await syncToCloud(localData)
-      return { action: 'pushed' }
-    } else if (cloudTime > localTime) {
-      // Cloud is newer, pull
-      return { action: 'pulled', data: cloudData }
-    }
-    return { action: 'none' }
-  } catch {
-    // If cloud read fails, try pushing
-    await syncToCloud(localData)
-    return { action: 'pushed' }
-  }
-}
-
-// Disconnect sync
-export function disconnectSync() {
-  setStoredToken(null)
-  setStoredGistId(null)
-  localStorage.removeItem(LAST_SYNC_KEY)
+export function markLocalChange() {
+  // Called when local data changes, so autoSync knows to push
+  localStorage.removeItem(SYNCED_AT_KEY)
 }
