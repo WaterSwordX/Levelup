@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js'
 const SUPABASE_URL_KEY = 'skill-tracker-supabase-url'
 const SUPABASE_KEY_KEY = 'skill-tracker-supabase-key'
 
-// Default project — user can override in settings
 const DEFAULT_URL = import.meta.env.VITE_SUPABASE_URL || ''
 const DEFAULT_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
@@ -16,8 +15,10 @@ export function getSupabaseKey(): string {
 }
 
 export function setSupabaseConfig(url: string, key: string) {
-  localStorage.setItem(SUPABASE_URL_KEY, url)
-  localStorage.setItem(SUPABASE_KEY_KEY, key)
+  // Normalize URL: remove trailing slash
+  const cleanUrl = url.trim().replace(/\/+$/, '')
+  localStorage.setItem(SUPABASE_URL_KEY, cleanUrl)
+  localStorage.setItem(SUPABASE_KEY_KEY, key.trim())
 }
 
 export function clearSupabaseConfig() {
@@ -26,7 +27,10 @@ export function clearSupabaseConfig() {
 }
 
 export function isSupabaseConfigured(): boolean {
-  return !!getSupabaseUrl() && !!getSupabaseKey()
+  const url = getSupabaseUrl()
+  const key = getSupabaseKey()
+  // Basic validation: URL should look like https://xxx.supabase.co
+  return !!url && !!key && url.startsWith('https://') && url.includes('.supabase.co')
 }
 
 export function getSupabaseClient() {
