@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, FolderTree, PenLine, Timer, BarChart3, HelpCircle, Zap } from 'lucide-react'
+import { LayoutDashboard, FolderTree, PenLine, Timer, BarChart3, HelpCircle, Zap, Settings } from 'lucide-react'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: '看板' },
@@ -85,7 +85,22 @@ export default function Layout() {
         </div>
 
         {/* Bottom section */}
-        <div className="mt-auto pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="mt-auto pt-4 space-y-0.5" style={{ borderTop: '1px solid var(--border)' }}>
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive
+                  ? 'text-[var(--accent)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`
+            }
+          >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+              <Settings size={18} />
+            </div>
+            <span>设置</span>
+          </NavLink>
           <NavLink
             to="/guide"
             className={({ isActive }) =>
@@ -148,9 +163,22 @@ export default function Layout() {
           </NavLink>
         ))}
         <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-0.5 px-2 py-1.5 text-[10px] font-medium transition-all duration-200 ${
+              isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'
+            }`
+          }
+        >
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+            <Settings size={18} />
+          </div>
+          <span>设置</span>
+        </NavLink>
+        <NavLink
           to="/guide"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-0.5 px-3 py-1.5 text-[10px] font-medium transition-all duration-200 ${
+            `flex flex-col items-center gap-0.5 px-2 py-1.5 text-[10px] font-medium transition-all duration-200 ${
               isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'
             }`
           }

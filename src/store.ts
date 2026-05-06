@@ -105,3 +105,20 @@ export const PRESET_COLORS = [
   '#ec4899', '#06b6d4', '#f97316', '#6366f1', '#14b8a6',
   '#e11d48', '#84cc16',
 ]
+
+// Data export/import for sync
+export function exportAllData() {
+  return {
+    categories: loadCategories(),
+    entries: loadEntries(),
+    goals: loadGoals(),
+    milestones: loadMilestones(),
+  }
+}
+
+export function importAllData(data: { categories?: Category[]; entries?: TimeEntry[]; goals?: Goal[]; milestones?: Milestone[] }) {
+  if (data.categories) saveCategories(data.categories)
+  if (data.entries) saveEntries(data.entries)
+  if (data.goals) saveGoals(data.goals)
+  if (data.milestones) saveMilestones(data.milestones)
+}
