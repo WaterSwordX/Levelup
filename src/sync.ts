@@ -162,6 +162,18 @@ export async function syncFromCloud(): Promise<SyncData> {
   if (!token || !gistId) throw new Error('未配置同步')
 
   const data = await readGist(token, gistId)
+
+  // Validate data structure
+  if (!data || typeof data !== 'object') {
+    throw new Error('云端数据格式无效')
+  }
+
+  // Ensure arrays exist (normalize missing fields to empty arrays)
+  data.categories = Array.isArray(data.categories) ? data.categories : []
+  data.entries = Array.isArray(data.entries) ? data.entries : []
+  data.goals = Array.isArray(data.goals) ? data.goals : []
+  data.milestones = Array.isArray(data.milestones) ? data.milestones : []
+
   setLastSyncTime()
   return data
 }

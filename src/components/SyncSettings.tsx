@@ -24,7 +24,6 @@ export default function SyncSettings() {
       setToken(stored)
       if (isSyncConfigured()) {
         setConnected(true)
-        // Try to get username
         verifyToken(stored).then(r => { if (r.username) setUsername(r.username) })
       }
     }
@@ -52,28 +51,34 @@ export default function SyncSettings() {
       const gistId = getStoredGistId()
       if (gistId) {
         try {
-          await syncFromCloud()
-          setConnected(true)
-          setMessage(`已连接 @${result.username}`)
-          setLastSync(getLastSyncTime())
+          const cloudData = await syncFromCloud()
+          if (cloudData && (cloudData.categories?.length || cloudData.entries?.length)) {
+            // Import cloud data immediately on connect
+            importAllData(cloudData)
+            setConnected(true)
+            setMessage(`已连接 @${result.username}，已从云端同步 ${cloudData.categories.length} 个分类、${cloudData.entries.length} 条记录`)
+          } else {
+            setConnected(true)
+            setMessage(`已连接 @${result.username}，云端暂无数据`)
+          }
         } catch {
-          // Gist not found, create new
+          // Gist not found, create new with local data
           const localData: SyncData = { ...exportAllData(), syncedAt: new Date().toISOString() }
           const newId = await createGist(token.trim(), localData)
           setStoredGistId(newId)
           setConnected(true)
-          setLastSync(getLastSyncTime())
-          setMessage(`已连接 @${result.username}，本地数据已上传`)
+          setMessage(`已连接 @${result.username}，本地数据已上传到新 Gist`)
         }
       } else {
+        // First time: create gist with current local data
         const localData: SyncData = { ...exportAllData(), syncedAt: new Date().toISOString() }
         const newId = await createGist(token.trim(), localData)
         setStoredGistId(newId)
         setConnected(true)
-        setLastSync(getLastSyncTime())
         setMessage(`已连接 @${result.username}，本地数据已上传`)
       }
 
+      setLastSync(getLastSyncTime())
       setStatus('success')
     } catch (err) {
       setError(err instanceof Error ? err.message : '连接失败')
@@ -85,10 +90,12 @@ export default function SyncSettings() {
     clearMessages()
     setStatus('syncing')
     try {
-      const data: SyncData = { ...exportAllData(), syncedAt: new Date().toISOString() }
+      const localData = exportAllData()
+      console.log('[Sync] Pushing data:', { categories: localData.categories.length, entries: localData.entries.length })
+      const data: SyncData = { ...localData, syncedAt: new Date().toISOString() }
       await syncToCloud(data)
       setLastSync(getLastSyncTime())
-      setMessage('数据已推送到云端')
+      setMessage(`已推送 ${localData.categories.length} 个分类、${localData.entries.length} 条记录到云端`)
       setStatus('success')
     } catch (err) {
       setError(err instanceof Error ? err.message : '推送失败')
@@ -101,11 +108,25 @@ export default function SyncSettings() {
     setStatus('syncing')
     try {
       const cloudData = await syncFromCloud()
+      console.log('[Sync] Pulled data:', {
+        categories: cloudData.categories?.length,
+        entries: cloudData.entries?.length,
+        goals: cloudData.goals?.length,
+        milestones: cloudData.milestones?.length,
+      })
+
+      if (!cloudData.categories?.length && !cloudData.entries?.length) {
+        setMessage('云端暂无数据，请先在其他设备推送数据')
+        setStatus('success')
+        return
+      }
+
+      // Save to localStorage
       importAllData(cloudData)
       setLastSync(getLastSyncTime())
-      setMessage('数据已从云端拉取，页面将刷新')
+      setMessage(`已拉取 ${cloudData.categories.length} 个分类、${cloudData.entries.length} 条记录，页面将刷新`)
       setStatus('success')
-      setTimeout(() => window.location.reload(), 800)
+      setTimeout(() => window.location.reload(), 1000)
     } catch (err) {
       setError(err instanceof Error ? err.message : '拉取失败')
       setStatus('error')
@@ -163,7 +184,7 @@ export default function SyncSettings() {
                   type={showToken ? 'text' : 'password'}
                   value={token}
                   onChange={e => setToken(e.target.value)}
-                  placeholder="ghp_xxxxxxxxxxxx"
+                  placeholder="github_pat_xxxxxxxxxxxx"
                   className="input-field pr-10"
                   onKeyDown={e => e.key === 'Enter' && handleConnect()}
                 />
@@ -185,7 +206,8 @@ export default function SyncSettings() {
               <p className="mb-1">如何获取 Token：</p>
               <ol className="list-decimal pl-4 space-y-0.5">
                 <li>打开 GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens</li>
-                <li>创建新 Token，权限选择 <strong style={{ color: 'var(--text-secondary)' }}>Gist（读写）</strong></li>
+                <li>创建新 Token，Repository access 选 <strong style={{ color: 'var(--text-secondary)' }}>No repositories</strong></li>
+                <li>在 Repository permissions 找到 <strong style={{ color: 'var(--text-secondary)' }}>Gist</strong>，选 Read and write</li>
                 <li>复制 Token 粘贴到上方</li>
               </ol>
               <a
@@ -211,33 +233,38 @@ export default function SyncSettings() {
         )}
 
         {connected && (
-          <div className="flex gap-2">
-            <button
-              onClick={handlePush}
-              disabled={syncing}
-              className="btn-ghost flex items-center gap-2 px-4 py-2 text-xs flex-1 justify-center"
-            >
-              {syncing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-              推送到云端
-            </button>
-            <button
-              onClick={handlePull}
-              disabled={syncing}
-              className="btn-ghost flex items-center gap-2 px-4 py-2 text-xs flex-1 justify-center"
-            >
-              {syncing ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-              从云端拉取
-            </button>
-            <button
-              onClick={handleDisconnect}
-              disabled={syncing}
-              className="flex items-center gap-2 px-3 py-2 text-xs rounded-xl transition-all duration-200"
-              style={{ color: 'var(--coral)', border: '1px solid rgba(255, 107, 107, 0.2)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 107, 107, 0.1)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-            >
-              <Unlink size={14} />
-            </button>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <button
+                onClick={handlePush}
+                disabled={syncing}
+                className="btn-ghost flex items-center gap-2 px-4 py-2 text-xs flex-1 justify-center"
+              >
+                {syncing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                推送到云端
+              </button>
+              <button
+                onClick={handlePull}
+                disabled={syncing}
+                className="btn-ghost flex items-center gap-2 px-4 py-2 text-xs flex-1 justify-center"
+              >
+                {syncing ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                从云端拉取
+              </button>
+              <button
+                onClick={handleDisconnect}
+                disabled={syncing}
+                className="flex items-center gap-2 px-3 py-2 text-xs rounded-xl transition-all duration-200"
+                style={{ color: 'var(--coral)', border: '1px solid rgba(255, 107, 107, 0.2)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 107, 107, 0.1)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                <Unlink size={14} />
+              </button>
+            </div>
+            <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+              提示：在设备 A 点「推送到云端」，在设备 B 点「从云端拉取」即可同步
+            </p>
           </div>
         )}
       </div>
