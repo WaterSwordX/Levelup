@@ -140,6 +140,24 @@ export async function verifyToken(token: string): Promise<{ valid: boolean; user
   }
 }
 
+// Search for existing Levelup Gist in user's Gists
+export async function findExistingGist(token: string): Promise<string | null> {
+  try {
+    const resp = await fetch(`${GIST_API}?per_page=100`, {
+      headers: gistHeaders(token),
+    })
+    if (!resp.ok) return null
+
+    const gists = await resp.json()
+    const match = gists.find((g: { description: string; files: Record<string, unknown> }) =>
+      g.description?.includes('Levelup') && g.files?.[GIST_FILENAME]
+    )
+    return match ? match.id : null
+  } catch {
+    return null
+  }
+}
+
 // Push local data to cloud
 export async function syncToCloud(data: SyncData): Promise<void> {
   const token = getStoredToken()

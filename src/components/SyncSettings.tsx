@@ -4,6 +4,7 @@ import {
   getStoredToken, setStoredToken, getStoredGistId, setStoredGistId,
   getLastSyncTime, isSyncConfigured, verifyToken,
   createGist, syncToCloud, syncFromCloud, disconnectSync, readGist,
+  findExistingGist,
 } from '../sync'
 import { exportAllData, importAllData } from '../store'
 import { Cloud, CloudOff, Upload, Download, Unlink, Eye, EyeOff, Check, Loader2, AlertCircle, ExternalLink, Bug } from 'lucide-react'
@@ -70,11 +71,32 @@ export default function SyncSettings() {
           setMessage(`已连接 @${result.username}，本地数据已上传到新 Gist`)
         }
       } else {
-        const localData: SyncData = { ...exportAllData(), syncedAt: new Date().toISOString() }
-        const newId = await createGist(token.trim(), localData)
-        setStoredGistId(newId)
-        setConnected(true)
-        setMessage(`已连接 @${result.username}，本地数据已上传`)
+        // First time on this device: search for existing Levelup Gist
+        const existingId = await findExistingGist(token.trim())
+        if (existingId) {
+          setStoredGistId(existingId)
+          try {
+            const cloudData = await readGist(token.trim(), existingId)
+            if (cloudData && (cloudData.categories?.length || cloudData.entries?.length)) {
+              importAllData(cloudData)
+              setConnected(true)
+              setMessage(`已连接 @${result.username}，已从云端同步 ${cloudData.categories?.length || 0} 个分类、${cloudData.entries?.length || 0} 条记录`)
+            } else {
+              setConnected(true)
+              setMessage(`已连接 @${result.username}，云端暂无数据`)
+            }
+          } catch {
+            setConnected(true)
+            setMessage(`已连接 @${result.username}，关联已有 Gist 失败，请手动推送`)
+          }
+        } else {
+          // No existing Gist, create new with local data
+          const localData: SyncData = { ...exportAllData(), syncedAt: new Date().toISOString() }
+          const newId = await createGist(token.trim(), localData)
+          setStoredGistId(newId)
+          setConnected(true)
+          setMessage(`已连接 @${result.username}，本地数据已上传`)
+        }
       }
 
       setLastSync(getLastSyncTime())
