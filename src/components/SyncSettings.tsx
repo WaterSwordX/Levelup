@@ -3,10 +3,10 @@ import type { SyncData, SyncStatus } from '../sync'
 import {
   getStoredToken, setStoredToken, getStoredGistId, setStoredGistId,
   getLastSyncTime, isSyncConfigured, verifyToken,
-  createGist, syncToCloud, syncFromCloud, disconnectSync,
+  createGist, syncToCloud, syncFromCloud, disconnectSync, readGist,
 } from '../sync'
 import { exportAllData, importAllData } from '../store'
-import { Cloud, CloudOff, Upload, Download, Unlink, Eye, EyeOff, Check, Loader2, AlertCircle, ExternalLink } from 'lucide-react'
+import { Cloud, CloudOff, Upload, Download, Unlink, Eye, EyeOff, Check, Loader2, AlertCircle, ExternalLink, Bug } from 'lucide-react'
 
 export default function SyncSettings() {
   const [token, setToken] = useState('')
@@ -17,6 +17,8 @@ export default function SyncSettings() {
   const [lastSync, setLastSync] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [showDebug, setShowDebug] = useState(false)
+  const [debugInfo, setDebugInfo] = useState('')
 
   useEffect(() => {
     const stored = getStoredToken()
@@ -53,7 +55,6 @@ export default function SyncSettings() {
         try {
           const cloudData = await syncFromCloud()
           if (cloudData && (cloudData.categories?.length || cloudData.entries?.length)) {
-            // Import cloud data immediately on connect
             importAllData(cloudData)
             setConnected(true)
             setMessage(`已连接 @${result.username}，已从云端同步 ${cloudData.categories.length} 个分类、${cloudData.entries.length} 条记录`)
@@ -62,7 +63,6 @@ export default function SyncSettings() {
             setMessage(`已连接 @${result.username}，云端暂无数据`)
           }
         } catch {
-          // Gist not found, create new with local data
           const localData: SyncData = { ...exportAllData(), syncedAt: new Date().toISOString() }
           const newId = await createGist(token.trim(), localData)
           setStoredGistId(newId)
@@ -70,7 +70,6 @@ export default function SyncSettings() {
           setMessage(`已连接 @${result.username}，本地数据已上传到新 Gist`)
         }
       } else {
-        // First time: create gist with current local data
         const localData: SyncData = { ...exportAllData(), syncedAt: new Date().toISOString() }
         const newId = await createGist(token.trim(), localData)
         setStoredGistId(newId)
@@ -91,7 +90,6 @@ export default function SyncSettings() {
     setStatus('syncing')
     try {
       const localData = exportAllData()
-      console.log('[Sync] Pushing data:', { categories: localData.categories.length, entries: localData.entries.length })
       const data: SyncData = { ...localData, syncedAt: new Date().toISOString() }
       await syncToCloud(data)
       setLastSync(getLastSyncTime())
@@ -108,12 +106,6 @@ export default function SyncSettings() {
     setStatus('syncing')
     try {
       const cloudData = await syncFromCloud()
-      console.log('[Sync] Pulled data:', {
-        categories: cloudData.categories?.length,
-        entries: cloudData.entries?.length,
-        goals: cloudData.goals?.length,
-        milestones: cloudData.milestones?.length,
-      })
 
       if (!cloudData.categories?.length && !cloudData.entries?.length) {
         setMessage('云端暂无数据，请先在其他设备推送数据')
@@ -121,7 +113,6 @@ export default function SyncSettings() {
         return
       }
 
-      // Save to localStorage
       importAllData(cloudData)
       setLastSync(getLastSyncTime())
       setMessage(`已拉取 ${cloudData.categories.length} 个分类、${cloudData.entries.length} 条记录，页面将刷新`)
@@ -141,6 +132,57 @@ export default function SyncSettings() {
     setLastSync(null)
     setMessage('已断开连接')
     setStatus('idle')
+  }
+
+  const handleDebug = async () => {
+    const lines: string[] = []
+
+    // Local data
+    const local = exportAllData()
+    lines.push('=== 本地数据 ===')
+    lines.push(`分类: ${local.categories.length} 条`)
+    lines.push(`记录: ${local.entries.length} 条`)
+    lines.push(`目标: ${local.goals.length} 条`)
+    lines.push(`里程碑: ${local.milestones.length} 条`)
+    if (local.categories.length > 0) {
+      lines.push(`分类列表: ${local.categories.map(c => c.name).join(', ')}`)
+    }
+
+    // Gist info
+    lines.push('')
+    lines.push('=== Gist 信息 ===')
+    const gistId = getStoredGistId()
+    lines.push(`Gist ID: ${gistId || '未设置'}`)
+    lines.push(`Token: ${getStoredToken() ? '已设置' : '未设置'}`)
+    lines.push(`上次同步: ${getLastSyncTime() || '无'}`)
+
+    // Try to read Gist directly
+    if (gistId && getStoredToken()) {
+      try {
+        lines.push('')
+        lines.push('=== 云端 Gist 原始数据 ===')
+        const raw = await readGist(getStoredToken()!, gistId)
+        lines.push(`类型: ${typeof raw}`)
+        lines.push(`键: ${Object.keys(raw).join(', ')}`)
+        lines.push(`分类: ${JSON.stringify(raw.categories?.length)}`)
+        lines.push(`记录: ${JSON.stringify(raw.entries?.length)}`)
+        lines.push(`目标: ${JSON.stringify(raw.goals?.length)}`)
+        lines.push(`里程碑: ${JSON.stringify(raw.milestones?.length)}`)
+        lines.push(`syncedAt: ${raw.syncedAt}`)
+        // Show first category if exists
+        if (raw.categories?.length > 0) {
+          lines.push(`首个分类: ${JSON.stringify(raw.categories[0])}`)
+        }
+        // Full raw content (truncated)
+        lines.push('')
+        lines.push('=== 完整 JSON (前 500 字符) ===')
+        lines.push(JSON.stringify(raw, null, 2).slice(0, 500))
+      } catch (e) {
+        lines.push(`读取 Gist 失败: ${e instanceof Error ? e.message : String(e)}`)
+      }
+    }
+
+    setDebugInfo(lines.join('\n'))
   }
 
   const syncing = status === 'syncing'
@@ -281,6 +323,41 @@ export default function SyncSettings() {
           <AlertCircle size={16} /> {error}
         </div>
       )}
+
+      {/* Debug Panel */}
+      <div className="glass-card p-4">
+        <button
+          onClick={() => { setShowDebug(!showDebug); if (!showDebug) handleDebug() }}
+          className="flex items-center gap-2 text-xs w-full"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <Bug size={14} />
+          {showDebug ? '隐藏调试信息' : '显示调试信息'}
+        </button>
+        {showDebug && (
+          <div className="mt-3">
+            <button
+              onClick={handleDebug}
+              className="text-xs px-3 py-1 rounded-lg mb-2"
+              style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}
+            >
+              刷新调试数据
+            </button>
+            <pre
+              className="text-[11px] p-3 rounded-xl overflow-auto max-h-64"
+              style={{
+                background: 'rgba(0,0,0,0.3)',
+                color: 'var(--teal)',
+                fontFamily: "'JetBrains Mono', monospace",
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-all',
+              }}
+            >
+              {debugInfo || '点击"刷新调试数据"加载'}
+            </pre>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
