@@ -143,17 +143,29 @@ export async function verifyToken(token: string): Promise<{ valid: boolean; user
 // Search for existing Levelup Gist in user's Gists
 export async function findExistingGist(token: string): Promise<string | null> {
   try {
+    console.log('[Sync] Searching for existing Gist...')
     const resp = await fetch(`${GIST_API}?per_page=100`, {
       headers: gistHeaders(token),
     })
-    if (!resp.ok) return null
+    console.log('[Sync] Gist list response:', resp.status)
+    if (!resp.ok) {
+      console.log('[Sync] Failed to list Gists:', resp.status)
+      return null
+    }
 
     const gists = await resp.json()
+    console.log('[Sync] Found', gists.length, 'Gists total')
+    for (const g of gists) {
+      console.log('[Sync] Gist:', g.id, '| desc:', g.description, '| files:', Object.keys(g.files || {}))
+    }
+
     const match = gists.find((g: { description: string; files: Record<string, unknown> }) =>
       g.description?.includes('Levelup') && g.files?.[GIST_FILENAME]
     )
+    console.log('[Sync] Match found:', match ? match.id : 'none')
     return match ? match.id : null
-  } catch {
+  } catch (e) {
+    console.log('[Sync] findExistingGist error:', e)
     return null
   }
 }

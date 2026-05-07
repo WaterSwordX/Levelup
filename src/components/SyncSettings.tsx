@@ -52,9 +52,11 @@ export default function SyncSettings() {
       setUsername(result.username || '')
 
       const gistId = getStoredGistId()
+      console.log('[Connect] Existing Gist ID:', gistId)
       if (gistId) {
         try {
           const cloudData = await syncFromCloud()
+          console.log('[Connect] Cloud data:', { categories: cloudData.categories?.length, entries: cloudData.entries?.length })
           if (cloudData && (cloudData.categories?.length || cloudData.entries?.length)) {
             importAllData(cloudData)
             setConnected(true)
@@ -63,7 +65,8 @@ export default function SyncSettings() {
             setConnected(true)
             setMessage(`已连接 @${result.username}，云端暂无数据`)
           }
-        } catch {
+        } catch (e) {
+          console.log('[Connect] syncFromCloud failed:', e)
           const localData: SyncData = { ...exportAllData(), syncedAt: new Date().toISOString() }
           const newId = await createGist(token.trim(), localData)
           setStoredGistId(newId)
@@ -71,8 +74,10 @@ export default function SyncSettings() {
           setMessage(`已连接 @${result.username}，本地数据已上传到新 Gist`)
         }
       } else {
+        console.log('[Connect] No stored Gist ID, searching for existing...')
         // First time on this device: search for existing Levelup Gist
         const existingId = await findExistingGist(token.trim())
+        console.log('[Connect] Found existing Gist:', existingId)
         if (existingId) {
           setStoredGistId(existingId)
           try {
