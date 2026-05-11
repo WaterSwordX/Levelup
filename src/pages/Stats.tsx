@@ -3,6 +3,8 @@ import type { Category, TimeEntry } from '../types'
 import { getTopCategories, getCategoryTotalTime, getCategoryPath } from '../store'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { FileText, FileSpreadsheet, BarChart3 } from 'lucide-react'
+import RevealSection from '../components/RevealSection'
+import TiltCard from '../components/TiltCard'
 
 interface Props {
   categories: Category[]
@@ -135,29 +137,31 @@ export default function Stats({ categories, entries }: Props) {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2
-            className="text-2xl font-bold tracking-tight"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
-          >
-            统计
-          </h2>
-          <p className="text-sm mt-1" style={{ color: 'var(--slate-ghost)' }}>
-            可视化你的成长数据
-          </p>
-        </div>
-        {entries.length > 0 && (
-          <div className="flex items-center gap-2">
-            <button onClick={exportCSV} className="btn-ghost flex items-center gap-1.5 px-3 py-2 text-xs">
-              <FileSpreadsheet size={14} /> 导出CSV
-            </button>
-            <button onClick={exportPDF} className="btn-ghost flex items-center gap-1.5 px-3 py-2 text-xs">
-              <FileText size={14} /> 导出PDF
-            </button>
+      <RevealSection>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2
+              className="text-2xl font-bold tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
+            >
+              统计
+            </h2>
+            <p className="text-sm mt-1" style={{ color: 'var(--slate-ghost)' }}>
+              可视化你的成长数据
+            </p>
           </div>
-        )}
-      </div>
+          {entries.length > 0 && (
+            <div className="flex items-center gap-2">
+              <button onClick={exportCSV} className="btn-ghost flex items-center gap-1.5 px-3 py-2 text-xs">
+                <FileSpreadsheet size={14} /> 导出CSV
+              </button>
+              <button onClick={exportPDF} className="btn-ghost flex items-center gap-1.5 px-3 py-2 text-xs">
+                <FileText size={14} /> 导出PDF
+              </button>
+            </div>
+          )}
+        </div>
+      </RevealSection>
 
       {entries.length === 0 ? (
         <div className="glass-card p-16 text-center">
@@ -167,87 +171,93 @@ export default function Stats({ categories, entries }: Props) {
       ) : (
         <>
           {pieData.length > 0 && (
-            <div className="glass-card p-5">
-              <h3 className="section-title mb-5">时间占比</h3>
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="w-52 h-52">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value">
-                        {pieData.map((entry, i) => <Cell key={i} fill={entry.color} stroke="transparent" />)}
-                      </Pie>
-                      <Tooltip {...tooltipStyle} formatter={(value) => formatMinutes(Number(value))} />
-                    </PieChart>
-                  </ResponsiveContainer>
+            <RevealSection delay={80}>
+              <TiltCard className="p-5">
+                <h3 className="section-title mb-5">时间占比</h3>
+                <div className="flex flex-col md:flex-row items-center gap-6">
+                  <div className="w-52 h-52">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value">
+                          {pieData.map((entry, i) => <Cell key={i} fill={entry.color} stroke="transparent" />)}
+                        </Pie>
+                        <Tooltip {...tooltipStyle} formatter={(value) => formatMinutes(Number(value))} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    {pieData.map(item => (
+                      <div key={item.name} className="flex items-center gap-2 text-xs">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ backgroundColor: item.color, boxShadow: `0 0 6px ${item.color}60` }}
+                        />
+                        <span style={{ color: 'var(--silver-mist)' }}>{item.name}</span>
+                        <span style={{ color: 'var(--slate-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>{formatMinutes(item.value)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-3 justify-center">
-                  {pieData.map(item => (
-                    <div key={item.name} className="flex items-center gap-2 text-xs">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: item.color, boxShadow: `0 0 6px ${item.color}60` }}
-                      />
-                      <span style={{ color: 'var(--silver-mist)' }}>{item.name}</span>
-                      <span style={{ color: 'var(--slate-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>{formatMinutes(item.value)}</span>
+              </TiltCard>
+            </RevealSection>
+          )}
+
+          <RevealSection delay={120}>
+            <TiltCard className="p-5">
+              <h3 className="section-title mb-5">每周投入趋势</h3>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData}>
+                    <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#5A5E6B' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 12, fill: '#5A5E6B' }} axisLine={false} tickLine={false} tickFormatter={v => formatMinutes(Number(v))} />
+                    <Tooltip {...tooltipStyle} formatter={(value) => formatMinutes(Number(value))} />
+                    <defs>
+                      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#E8941A" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="#E8941A" stopOpacity={0.4} />
+                      </linearGradient>
+                    </defs>
+                    <Bar dataKey="minutes" fill="url(#barGradient)" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </TiltCard>
+          </RevealSection>
+
+          <RevealSection delay={160}>
+            <TiltCard className="p-5">
+              <h3 className="section-title mb-5">每日活跃（近90天）</h3>
+              <div className="overflow-x-auto">
+                <div className="inline-flex gap-[3px]">
+                  {Array.from({ length: totalWeeks }, (_, weekIdx) => (
+                    <div key={weekIdx} className="flex flex-col gap-[3px]">
+                      {Array.from({ length: 7 }, (_, dayIdx) => {
+                        const cell = heatmapData.find(d => d.week === weekIdx && d.day === dayIdx)
+                        return (
+                          <div
+                            key={dayIdx}
+                            className="w-[13px] h-[13px] rounded-[3px] transition-all duration-200"
+                            style={{
+                              backgroundColor: cell ? getHeatColor(cell.minutes) : 'rgba(255,255,255,0.02)',
+                              boxShadow: cell && cell.minutes > 0 ? `0 0 6px ${getHeatColor(cell.minutes)}` : 'none',
+                            }}
+                            title={cell ? `${cell.date}: ${cell.minutes}分钟` : ''}
+                          />
+                        )
+                      })}
                     </div>
                   ))}
                 </div>
+                <div className="flex items-center gap-1.5 mt-3 text-xs" style={{ color: 'var(--slate-ghost)' }}>
+                  <span>少</span>
+                  {['rgba(255,255,255,0.04)', 'rgba(232,148,26,0.15)', 'rgba(232,148,26,0.3)', 'rgba(232,148,26,0.5)', 'rgba(232,148,26,0.8)'].map(c => (
+                    <span key={c} className="w-[13px] h-[13px] rounded-[3px]" style={{ backgroundColor: c }} />
+                  ))}
+                  <span>多</span>
+                </div>
               </div>
-            </div>
-          )}
-
-          <div className="glass-card p-5">
-            <h3 className="section-title mb-5">每周投入趋势</h3>
-            <div className="h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barData}>
-                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#5A5E6B' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: '#5A5E6B' }} axisLine={false} tickLine={false} tickFormatter={v => formatMinutes(Number(v))} />
-                  <Tooltip {...tooltipStyle} formatter={(value) => formatMinutes(Number(value))} />
-                  <defs>
-                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#E8941A" stopOpacity={0.9} />
-                      <stop offset="100%" stopColor="#E8941A" stopOpacity={0.4} />
-                    </linearGradient>
-                  </defs>
-                  <Bar dataKey="minutes" fill="url(#barGradient)" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="glass-card p-5">
-            <h3 className="section-title mb-5">每日活跃（近90天）</h3>
-            <div className="overflow-x-auto">
-              <div className="inline-flex gap-[3px]">
-                {Array.from({ length: totalWeeks }, (_, weekIdx) => (
-                  <div key={weekIdx} className="flex flex-col gap-[3px]">
-                    {Array.from({ length: 7 }, (_, dayIdx) => {
-                      const cell = heatmapData.find(d => d.week === weekIdx && d.day === dayIdx)
-                      return (
-                        <div
-                          key={dayIdx}
-                          className="w-[13px] h-[13px] rounded-[3px] transition-all duration-200"
-                          style={{
-                            backgroundColor: cell ? getHeatColor(cell.minutes) : 'rgba(255,255,255,0.02)',
-                            boxShadow: cell && cell.minutes > 0 ? `0 0 6px ${getHeatColor(cell.minutes)}` : 'none',
-                          }}
-                          title={cell ? `${cell.date}: ${cell.minutes}分钟` : ''}
-                        />
-                      )
-                    })}
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-1.5 mt-3 text-xs" style={{ color: 'var(--slate-ghost)' }}>
-                <span>少</span>
-                {['rgba(255,255,255,0.04)', 'rgba(232,148,26,0.15)', 'rgba(232,148,26,0.3)', 'rgba(232,148,26,0.5)', 'rgba(232,148,26,0.8)'].map(c => (
-                  <span key={c} className="w-[13px] h-[13px] rounded-[3px]" style={{ backgroundColor: c }} />
-                ))}
-                <span>多</span>
-              </div>
-            </div>
-          </div>
+            </TiltCard>
+          </RevealSection>
         </>
       )}
     </div>

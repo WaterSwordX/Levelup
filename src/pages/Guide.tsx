@@ -1,4 +1,6 @@
 import { FolderTree, PenLine, Timer, BarChart3, Target, Award, Download, Clock, LayoutDashboard, Lightbulb } from 'lucide-react'
+import RevealSection from '../components/RevealSection'
+import TiltCard from '../components/TiltCard'
 
 const sections = [
   {
@@ -112,81 +114,85 @@ const sections = [
 export default function Guide() {
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <div>
-        <h2
-          className="text-2xl font-bold tracking-tight"
-          style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
-        >
-          使用说明
-        </h2>
-        <p className="text-sm mt-1" style={{ color: 'var(--silver-mist)' }}>
-          Levelup 帮助你记录在各类技能上的时间投入，让积累看得见。基于刻意练习理念，追踪每一项技能的成长轨迹。
-        </p>
-      </div>
+      <RevealSection>
+        <div>
+          <h2
+            className="text-2xl font-bold tracking-tight"
+            style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
+          >
+            使用说明
+          </h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--silver-mist)' }}>
+            Levelup 帮助你记录在各类技能上的时间投入，让积累看得见。基于刻意练习理念，追踪每一项技能的成长轨迹。
+          </p>
+        </div>
+      </RevealSection>
 
-      <div className="space-y-3 stagger-children">
-        {sections.map(section => (
-          <div key={section.title} className="glass-card p-5 animate-fade-in-up">
-            <div className="flex items-center gap-3 mb-3">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{
-                  background: `${section.color}12`,
-                }}
-              >
-                <section.icon size={18} style={{ color: section.color }} />
+      <div className="space-y-3">
+        {sections.map((section, i) => (
+          <RevealSection key={section.title} delay={i * 40}>
+            <TiltCard className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: `${section.color}12` }}
+                >
+                  <section.icon size={18} style={{ color: section.color }} />
+                </div>
+                <h3
+                  className="text-base font-semibold"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
+                >
+                  {section.title}
+                </h3>
               </div>
-              <h3
-                className="text-base font-semibold"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
-              >
-                {section.title}
-              </h3>
-            </div>
-            <ol className="space-y-2 pl-[52px]">
-              {section.steps.map((step, i) => (
-                <li key={i} className="text-sm list-decimal" style={{ color: 'var(--silver-mist)' }}>
-                  {step}
-                </li>
-              ))}
-            </ol>
-          </div>
+              <ol className="space-y-2 pl-[52px]">
+                {section.steps.map((step, j) => (
+                  <li key={j} className="text-sm list-decimal" style={{ color: 'var(--silver-mist)' }}>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </TiltCard>
+          </RevealSection>
         ))}
       </div>
 
-      <div
-        className="glass-card p-5"
-        style={{
-          border: '1px solid rgba(232, 148, 26, 0.15)',
-          background: 'rgba(232, 148, 26, 0.03)',
-        }}
-      >
-        <h3
-          className="text-sm font-semibold flex items-center gap-2 mb-3"
-          style={{ color: '#E8941A' }}
+      <RevealSection delay={200}>
+        <TiltCard
+          className="p-5"
+          style={{
+            border: '1px solid rgba(232, 148, 26, 0.15)',
+            background: 'rgba(232, 148, 26, 0.03)',
+          }}
         >
-          <Lightbulb size={16} />
-          小贴士
-        </h3>
-        <ul className="space-y-2 text-sm" style={{ color: 'var(--silver-mist)' }}>
-          <li className="flex items-start gap-2">
-            <span style={{ color: '#E8941A' }}>·</span>
-            每天坚持记录，哪怕只记录了「做了什么」也是有价值的
-          </li>
-          <li className="flex items-start gap-2">
-            <span style={{ color: '#E8941A' }}>·</span>
-            设定一个阶段性目标（如 100 小时），看着进度条前进会很有成就感
-          </li>
-          <li className="flex items-start gap-2">
-            <span style={{ color: '#E8941A' }}>·</span>
-            里程碑达成时记得保存成就卡片，记录你的成长轨迹
-          </li>
-          <li className="flex items-start gap-2">
-            <span style={{ color: '#E8941A' }}>·</span>
-            定期导出 CSV 备份数据，防止浏览器缓存丢失
-          </li>
-        </ul>
-      </div>
+          <h3
+            className="text-sm font-semibold flex items-center gap-2 mb-3"
+            style={{ color: '#E8941A' }}
+          >
+            <Lightbulb size={16} />
+            小贴士
+          </h3>
+          <ul className="space-y-2 text-sm" style={{ color: 'var(--silver-mist)' }}>
+            <li className="flex items-start gap-2">
+              <span style={{ color: '#E8941A' }}>·</span>
+              每天坚持记录，哪怕只记录了「做了什么」也是有价值的
+            </li>
+            <li className="flex items-start gap-2">
+              <span style={{ color: '#E8941A' }}>·</span>
+              设定一个阶段性目标（如 100 小时），看着进度条前进会很有成就感
+            </li>
+            <li className="flex items-start gap-2">
+              <span style={{ color: '#E8941A' }}>·</span>
+              里程碑达成时记得保存成就卡片，记录你的成长轨迹
+            </li>
+            <li className="flex items-start gap-2">
+              <span style={{ color: '#E8941A' }}>·</span>
+              定期导出 CSV 备份数据，防止浏览器缓存丢失
+            </li>
+          </ul>
+        </TiltCard>
+      </RevealSection>
     </div>
   )
 }

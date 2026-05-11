@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { Category, TimeEntry, Goal } from '../types'
 import { saveCategories, saveGoals, getGoalForCategory, getCategoryTotalTime, PRESET_COLORS } from '../store'
 import CategoryTree from '../components/CategoryTree'
+import RevealSection from '../components/RevealSection'
+import TiltCard from '../components/TiltCard'
 import { Plus, Pencil, Trash2, FolderPlus, Target, X, Check } from 'lucide-react'
 
 interface Props {
@@ -116,30 +118,32 @@ export default function Categories({ categories, entries, setCategories, goals, 
 
   return (
     <div className="space-y-5 animate-fade-in-up">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2
-            className="text-2xl font-bold tracking-tight"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
+      <RevealSection>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2
+              className="text-2xl font-bold tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
+            >
+              技能分类
+            </h2>
+            <p className="text-sm mt-1" style={{ color: 'var(--slate-ghost)' }}>
+              管理你的技能树
+            </p>
+          </div>
+          <button
+            onClick={() => { setShowAdd('top'); setName(''); setColor(PRESET_COLORS[categories.length % PRESET_COLORS.length]) }}
+            className="btn-primary flex items-center gap-2 px-4 py-2.5 text-sm"
           >
-            技能分类
-          </h2>
-          <p className="text-sm mt-1" style={{ color: 'var(--slate-ghost)' }}>
-            管理你的技能树
-          </p>
+            <Plus size={16} />
+            添加大类
+          </button>
         </div>
-        <button
-          onClick={() => { setShowAdd('top'); setName(''); setColor(PRESET_COLORS[categories.length % PRESET_COLORS.length]) }}
-          className="btn-primary flex items-center gap-2 px-4 py-2.5 text-sm"
-        >
-          <Plus size={16} />
-          添加大类
-        </button>
-      </div>
+      </RevealSection>
 
       {/* Form */}
       {(showAdd !== null || editId !== null || goalCatId !== null) && (
-        <div className="glass-card p-5 space-y-4 animate-fade-in-up">
+        <TiltCard className="p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h3
               className="text-sm font-semibold"
@@ -233,80 +237,82 @@ export default function Categories({ categories, entries, setCategories, goals, 
               </button>
             </>
           )}
-        </div>
+        </TiltCard>
       )}
 
       {/* Category Tree */}
-      <div className="glass-card-solid p-3">
-        {categories.length === 0 && showAdd === null ? (
-          <div className="p-10 text-center text-sm" style={{ color: 'var(--slate-ghost)' }}>
-            还没有分类，点击上方「添加大类」开始
-          </div>
-        ) : (
-          <CategoryTree
-            categories={categories}
-            entries={entries}
-            showTime={true}
-            renderActions={(cat) => {
-              const goal = getGoalForCategory(cat.id, goals)
-              const total = getCategoryTotalTime(cat.id, entries, categories)
-              const percent = goal ? Math.min((total / goal.targetMinutes) * 100, 100) : 0
-              return (
-                <div className="flex items-center gap-0.5">
-                  {goal && (
-                    <span
-                      className="text-[10px] font-semibold mr-1"
-                      style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--ember-glow)' }}
+      <RevealSection delay={100}>
+        <div className="glass-card-solid p-3">
+          {categories.length === 0 && showAdd === null ? (
+            <div className="p-10 text-center text-sm" style={{ color: 'var(--slate-ghost)' }}>
+              还没有分类，点击上方「添加大类」开始
+            </div>
+          ) : (
+            <CategoryTree
+              categories={categories}
+              entries={entries}
+              showTime={true}
+              renderActions={(cat) => {
+                const goal = getGoalForCategory(cat.id, goals)
+                const total = getCategoryTotalTime(cat.id, entries, categories)
+                const percent = goal ? Math.min((total / goal.targetMinutes) * 100, 100) : 0
+                return (
+                  <div className="flex items-center gap-0.5">
+                    {goal && (
+                      <span
+                        className="text-[10px] font-semibold mr-1"
+                        style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--ember-glow)' }}
+                      >
+                        {percent.toFixed(0)}%
+                      </span>
+                    )}
+                    <button
+                      onClick={() => startGoal(cat)}
+                      className="p-1.5 rounded-lg transition-colors duration-200"
+                      style={{ color: goal ? 'var(--ember-glow)' : 'var(--slate-ghost)' }}
+                      title={goal ? '修改目标' : '设定目标'}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--ember-soft)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                     >
-                      {percent.toFixed(0)}%
-                    </span>
-                  )}
-                  <button
-                    onClick={() => startGoal(cat)}
-                    className="p-1.5 rounded-lg transition-colors duration-200"
-                    style={{ color: goal ? 'var(--ember-glow)' : 'var(--slate-ghost)' }}
-                    title={goal ? '修改目标' : '设定目标'}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ember-soft)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-                  >
-                    <Target size={14} />
-                  </button>
-                  <button
-                    onClick={() => { setShowAdd(cat.id); setName(''); setColor(PRESET_COLORS[(categories.length + 1) % PRESET_COLORS.length]) }}
-                    className="p-1.5 rounded-lg transition-colors duration-200"
-                    style={{ color: 'var(--slate-ghost)' }}
-                    title="添加子类"
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--teal-flow)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-ghost)' }}
-                  >
-                    <FolderPlus size={14} />
-                  </button>
-                  <button
-                    onClick={() => startEdit(cat)}
-                    className="p-1.5 rounded-lg transition-colors duration-200"
-                    style={{ color: 'var(--slate-ghost)' }}
-                    title="编辑"
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--ember-glow)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-ghost)' }}
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(cat.id)}
-                    className="p-1.5 rounded-lg transition-colors duration-200"
-                    style={{ color: 'var(--slate-ghost)' }}
-                    title="删除"
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--coral-soft)'; e.currentTarget.style.color = 'var(--coral-pulse)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-ghost)' }}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              )
-            }}
-          />
-        )}
-      </div>
+                      <Target size={14} />
+                    </button>
+                    <button
+                      onClick={() => { setShowAdd(cat.id); setName(''); setColor(PRESET_COLORS[(categories.length + 1) % PRESET_COLORS.length]) }}
+                      className="p-1.5 rounded-lg transition-colors duration-200"
+                      style={{ color: 'var(--slate-ghost)' }}
+                      title="添加子类"
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--teal-flow)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-ghost)' }}
+                    >
+                      <FolderPlus size={14} />
+                    </button>
+                    <button
+                      onClick={() => startEdit(cat)}
+                      className="p-1.5 rounded-lg transition-colors duration-200"
+                      style={{ color: 'var(--slate-ghost)' }}
+                      title="编辑"
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--ember-glow)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-ghost)' }}
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(cat.id)}
+                      className="p-1.5 rounded-lg transition-colors duration-200"
+                      style={{ color: 'var(--slate-ghost)' }}
+                      title="删除"
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--coral-soft)'; e.currentTarget.style.color = 'var(--coral-pulse)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-ghost)' }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )
+              }}
+            />
+          )}
+        </div>
+      </RevealSection>
     </div>
   )
 }
