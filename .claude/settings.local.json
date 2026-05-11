@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(npm install *)",
+      "Bash(node -e ' *)",
+      "Bash(npx sharp-cli *)",
+      "Bash(rm -rf dist)",
+      "Bash(rm -f src/components/AuthPanel.tsx)",
+      "Bash(git restore *)",
+      "Bash(git commit *)",
+      "Bash(ping *)",
+      "Bash(git remote *)",
+      "Bash(mkdir -p ~/.ssh)",
+      "Bash(ssh-keyscan github.com)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://github.com)",
+      "Bash(npx tsc *)",
+      "Skill(taste-design)",
+      "Skill(impeccable)",
+      "Bash(node *)"
+    ]
+  }
+}

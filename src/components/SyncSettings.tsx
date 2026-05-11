@@ -1,15 +1,25 @@
 import { useState, useEffect } from 'react'
 import type { SyncData, SyncStatus } from '../sync'
+import type { Category, TimeEntry, Goal, Milestone } from '../types'
 import {
   getStoredToken, setStoredToken, getStoredGistId, setStoredGistId,
-  getLastSyncTime, isSyncConfigured, verifyToken,
-  createGist, syncToCloud, syncFromCloud, disconnectSync, readGist,
-  findExistingGist,
+  getLastSyncTime, setLastSyncTime, isSyncConfigured, verifyToken,
+  createGist, updateGist, syncToCloud, syncFromCloud, disconnectSync, readGist,
+  findBestExistingGist, cleanupDuplicateGists,
 } from '../sync'
-import { exportAllData, importAllData } from '../store'
+import { exportAllData, importAllData, mergeAllData } from '../store'
 import { Cloud, CloudOff, Upload, Download, Unlink, Eye, EyeOff, Check, Loader2, AlertCircle, ExternalLink, Bug } from 'lucide-react'
 
-export default function SyncSettings() {
+interface Props {
+  currentData?: {
+    categories: Category[]
+    entries: TimeEntry[]
+    goals: Goal[]
+    milestones: Milestone[]
+  }
+}
+
+export default function SyncSettings({ currentData }: Props) {
   const [token, setToken] = useState('')
   const [showToken, setShowToken] = useState(false)
   const [connected, setConnected] = useState(false)
@@ -35,6 +45,17 @@ export default function SyncSettings() {
 
   const clearMessages = () => { setError(''); setMessage('') }
 
+  // Use currentData (React state) if available, otherwise fall back to localStorage
+  const getLocalData = () => {
+    if (currentData) {
+      console.log('[Sync] Using currentData from React state:', { cat: currentData.categories.length, entries: currentData.entries.length })
+      return currentData
+    }
+    const data = exportAllData()
+    console.log('[Sync] Using exportAllData from localStorage:', { cat: data.categories.length, entries: data.entries.length })
+    return data
+  }
+
   const handleConnect = async () => {
     if (!token.trim()) return
     clearMessages()
@@ -53,50 +74,89 @@ export default function SyncSettings() {
 
       const gistId = getStoredGistId()
       console.log('[Connect] Existing Gist ID:', gistId)
-      if (gistId) {
+
+      // Always read local data BEFORE any cloud operation
+      const localBeforeConnect = getLocalData()
+      console.log('[Connect] Local data before connect:', {
+        categories: localBeforeConnect.categories.length,
+        entries: localBeforeConnect.entries.length,
+      })
+
+      // Helper: connect with a given Gist ID, merge cloud+local, push merged result
+      const connectWithGist = async (id: string) => {
+        setStoredGistId(id)
         try {
-          const cloudData = await syncFromCloud()
-          console.log('[Connect] Cloud data:', { categories: cloudData.categories?.length, entries: cloudData.entries?.length })
+          const cloudData = await readGist(token.trim(), id)
+          console.log('[Connect] Cloud data:', {
+            categories: cloudData?.categories?.length,
+            entries: cloudData?.entries?.length,
+          })
           if (cloudData && (cloudData.categories?.length || cloudData.entries?.length)) {
-            importAllData(cloudData)
+            // Merge cloud data with local data (union, local wins on conflicts)
+            const merged = mergeAllData(cloudData, currentData)
+            console.log('[Connect] Merged result:', {
+              categories: merged.categories.length,
+              entries: merged.entries.length,
+            })
+            const mergedSync: SyncData = { ...merged, syncedAt: new Date().toISOString() }
+            // Push merged result back so all devices stay in sync
+            await updateGist(token.trim(), id, mergedSync)
+            setLastSyncTime()
             setConnected(true)
-            setMessage(`已连接 @${result.username}，已从云端同步 ${cloudData.categories.length} 个分类、${cloudData.entries.length} 条记录`)
+            setMessage(`已连接 @${result.username}，已合并云端数据，页面将刷新`)
+            // Always reload to sync React state with localStorage
+            setTimeout(() => window.location.reload(), 1500)
           } else {
+            // Cloud is empty, push local data up
+            const localData: SyncData = { ...getLocalData(), syncedAt: new Date().toISOString() }
+            console.log('[Connect] Pushing local data:', {
+              categories: localData.categories.length,
+              entries: localData.entries.length,
+            })
+            await updateGist(token.trim(), id, localData)
+            setLastSyncTime()
             setConnected(true)
-            setMessage(`已连接 @${result.username}，云端暂无数据`)
+            setMessage(`已连接 @${result.username}，已推送 ${localData.categories.length} 个分类、${localData.entries.length} 条记录到云端`)
           }
         } catch (e) {
-          console.log('[Connect] syncFromCloud failed:', e)
-          const localData: SyncData = { ...exportAllData(), syncedAt: new Date().toISOString() }
-          const newId = await createGist(token.trim(), localData)
-          setStoredGistId(newId)
-          setConnected(true)
-          setMessage(`已连接 @${result.username}，本地数据已上传到新 Gist`)
+          console.log('[Connect] Read/push failed:', e)
+          try {
+            const localData: SyncData = { ...getLocalData(), syncedAt: new Date().toISOString() }
+            await updateGist(token.trim(), id, localData)
+            setLastSyncTime()
+            setConnected(true)
+            setMessage(`已连接 @${result.username}，本地数据已推送到云端`)
+          } catch {
+            setConnected(true)
+            setMessage(`已连接 @${result.username}，同步失败，请手动推送`)
+          }
+        }
+      }
+
+      if (gistId) {
+        try {
+          await connectWithGist(gistId)
+        } catch (e) {
+          console.log('[Connect] Stored Gist failed, searching for existing:', e)
+          const existingId = await findBestExistingGist(token.trim())
+          if (existingId) {
+            await connectWithGist(existingId)
+          } else {
+            const localData: SyncData = { ...getLocalData(), syncedAt: new Date().toISOString() }
+            const newId = await createGist(token.trim(), localData)
+            setStoredGistId(newId)
+            setConnected(true)
+            setMessage(`已连接 @${result.username}，本地数据已上传到新 Gist`)
+          }
         }
       } else {
         console.log('[Connect] No stored Gist ID, searching for existing...')
-        // First time on this device: search for existing Levelup Gist
-        const existingId = await findExistingGist(token.trim())
+        const existingId = await findBestExistingGist(token.trim())
         console.log('[Connect] Found existing Gist:', existingId)
         if (existingId) {
-          setStoredGistId(existingId)
-          try {
-            const cloudData = await readGist(token.trim(), existingId)
-            if (cloudData && (cloudData.categories?.length || cloudData.entries?.length)) {
-              importAllData(cloudData)
-              setConnected(true)
-              setMessage(`已连接 @${result.username}，已从云端同步 ${cloudData.categories?.length || 0} 个分类、${cloudData.entries?.length || 0} 条记录`)
-            } else {
-              setConnected(true)
-              setMessage(`已连接 @${result.username}，云端暂无数据`)
-            }
-          } catch {
-            setConnected(true)
-            setMessage(`已连接 @${result.username}，关联已有 Gist 失败，请手动推送`)
-          }
+          await connectWithGist(existingId)
         } else {
-          // No existing Gist, create new with local data
-          const localData: SyncData = { ...exportAllData(), syncedAt: new Date().toISOString() }
+          const localData: SyncData = { ...getLocalData(), syncedAt: new Date().toISOString() }
           const newId = await createGist(token.trim(), localData)
           setStoredGistId(newId)
           setConnected(true)
@@ -116,7 +176,7 @@ export default function SyncSettings() {
     clearMessages()
     setStatus('syncing')
     try {
-      const localData = exportAllData()
+      const localData = getLocalData()
       const data: SyncData = { ...localData, syncedAt: new Date().toISOString() }
       await syncToCloud(data)
       setLastSync(getLastSyncTime())
@@ -218,23 +278,23 @@ export default function SyncSettings() {
     <div className="space-y-4">
       <div
         className="glass-card p-5"
-        style={{ border: connected ? '1px solid rgba(78, 205, 196, 0.2)' : '1px solid var(--border)' }}
+        style={{ border: connected ? '1px solid rgba(78, 205, 196, 0.2)' : '1px solid var(--whisper-border)' }}
       >
         <div className="flex items-center gap-3 mb-4">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: connected ? 'rgba(78, 205, 196, 0.1)' : 'rgba(255, 255, 255, 0.05)' }}
+            style={{ background: connected ? 'var(--teal-soft)' : 'rgba(255, 255, 255, 0.05)' }}
           >
-            {connected ? <Cloud size={20} style={{ color: 'var(--teal)' }} /> : <CloudOff size={20} style={{ color: 'var(--text-muted)' }} />}
+            {connected ? <Cloud size={20} style={{ color: '#4ECDC4' }} /> : <CloudOff size={20} style={{ color: 'var(--slate-ghost)' }} />}
           </div>
           <div>
             <h3
               className="text-sm font-semibold"
-              style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+              style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
             >
               {connected ? `已连接 @${username}` : 'GitHub Gist 同步'}
             </h3>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs" style={{ color: 'var(--slate-ghost)' }}>
               {connected
                 ? lastSync ? `上次同步: ${new Date(lastSync).toLocaleString('zh-CN')}` : '已连接，等待首次同步'
                 : '通过 GitHub Gist 跨设备同步数据'}
@@ -245,7 +305,7 @@ export default function SyncSettings() {
         {!connected && (
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>
                 GitHub Personal Access Token
               </label>
               <div className="relative">
@@ -261,7 +321,7 @@ export default function SyncSettings() {
                   type="button"
                   onClick={() => setShowToken(!showToken)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: 'var(--text-muted)' }}
+                  style={{ color: 'var(--slate-ghost)' }}
                 >
                   {showToken ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -270,13 +330,13 @@ export default function SyncSettings() {
 
             <div
               className="text-xs p-3 rounded-xl"
-              style={{ background: 'rgba(255, 255, 255, 0.02)', color: 'var(--text-muted)' }}
+              style={{ background: 'rgba(255, 255, 255, 0.02)', color: 'var(--slate-ghost)' }}
             >
               <p className="mb-1">如何获取 Token：</p>
               <ol className="list-decimal pl-4 space-y-0.5">
                 <li>打开 GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens</li>
-                <li>创建新 Token，Repository access 选 <strong style={{ color: 'var(--text-secondary)' }}>No repositories</strong></li>
-                <li>在 Repository permissions 找到 <strong style={{ color: 'var(--text-secondary)' }}>Gist</strong>，选 Read and write</li>
+                <li>创建新 Token，Repository access 选 <strong style={{ color: 'var(--silver-mist)' }}>No repositories</strong></li>
+                <li>在 Repository permissions 找到 <strong style={{ color: 'var(--silver-mist)' }}>Gist</strong>，选 Read and write</li>
                 <li>复制 Token 粘贴到上方</li>
               </ol>
               <a
@@ -284,7 +344,7 @@ export default function SyncSettings() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 mt-2 transition-colors duration-200"
-                style={{ color: 'var(--accent)' }}
+                style={{ color: '#E8941A' }}
               >
                 前往创建 Token <ExternalLink size={12} />
               </a>
@@ -324,29 +384,53 @@ export default function SyncSettings() {
                 onClick={handleDisconnect}
                 disabled={syncing}
                 className="flex items-center gap-2 px-3 py-2 text-xs rounded-xl transition-all duration-200"
-                style={{ color: 'var(--coral)', border: '1px solid rgba(255, 107, 107, 0.2)' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 107, 107, 0.1)' }}
+                style={{ color: 'var(--coral-pulse)', border: '1px solid rgba(232, 107, 107, 0.2)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--coral-soft)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
               >
                 <Unlink size={14} />
               </button>
             </div>
-            <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
               提示：在设备 A 点「推送到云端」，在设备 B 点「从云端拉取」即可同步
             </p>
+            <button
+              onClick={async () => {
+                clearMessages()
+                setStatus('syncing')
+                try {
+                  const result = await cleanupDuplicateGists(token.trim())
+                  setStoredGistId(result.kept)
+                  setMessage(`已清理：保留 1 个 Gist，删除 ${result.deleted} 个重复`)
+                  setStatus('success')
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : '清理失败')
+                  setStatus('error')
+                }
+              }}
+              disabled={syncing}
+              className="text-[11px] w-full py-1.5 rounded-lg transition-all duration-200"
+              style={{ color: 'var(--slate-ghost)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              清理重复 Gist（合并为一个）
+            </button>
           </div>
         )}
       </div>
 
       {message && (
-        <div className="flex items-center gap-2 p-3 rounded-xl text-sm animate-fade-in"
-          style={{ background: 'rgba(78, 205, 196, 0.08)', color: 'var(--teal)' }}>
+        <div
+          className="flex items-center gap-2 p-3 rounded-xl text-sm animate-fade-in"
+          style={{ background: 'var(--teal-soft)', color: '#4ECDC4' }}
+        >
           <Check size={16} /> {message}
         </div>
       )}
       {error && (
-        <div className="flex items-center gap-2 p-3 rounded-xl text-sm animate-fade-in"
-          style={{ background: 'rgba(255, 107, 107, 0.08)', color: 'var(--coral)' }}>
+        <div
+          className="flex items-center gap-2 p-3 rounded-xl text-sm animate-fade-in"
+          style={{ background: 'var(--coral-soft)', color: '#E86B6B' }}
+        >
           <AlertCircle size={16} /> {error}
         </div>
       )}
@@ -356,7 +440,7 @@ export default function SyncSettings() {
         <button
           onClick={() => { setShowDebug(!showDebug); if (!showDebug) handleDebug() }}
           className="flex items-center gap-2 text-xs w-full"
-          style={{ color: 'var(--text-muted)' }}
+          style={{ color: 'var(--slate-ghost)' }}
         >
           <Bug size={14} />
           {showDebug ? '隐藏调试信息' : '显示调试信息'}
@@ -366,15 +450,15 @@ export default function SyncSettings() {
             <button
               onClick={handleDebug}
               className="text-xs px-3 py-1 rounded-lg mb-2"
-              style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}
+              style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--silver-mist)' }}
             >
               刷新调试数据
             </button>
             <pre
               className="text-[11px] p-3 rounded-xl overflow-auto max-h-64"
               style={{
-                background: 'rgba(0,0,0,0.3)',
-                color: 'var(--teal)',
+                background: 'rgba(0,0,0,0.25)',
+                color: '#4ECDC4',
                 fontFamily: "'JetBrains Mono', monospace",
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-all',

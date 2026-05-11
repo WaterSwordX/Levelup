@@ -35,7 +35,7 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
     if (!cardRef.current) return
     try {
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#0e1017',
+        backgroundColor: '#111318',
         scale: 2,
       })
       const link = document.createElement('a')
@@ -51,11 +51,11 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
     <div className="space-y-2">
       <div
         ref={cardRef}
-        className="relative overflow-hidden rounded-2xl p-5"
+        className="relative overflow-hidden rounded-2xl p-5 milestone-badge"
         style={{
-          background: `linear-gradient(135deg, ${category.color}15, rgba(14, 16, 23, 0.8))`,
-          border: `1px solid ${category.color}25`,
-          boxShadow: `0 0 30px ${category.color}15, inset 0 1px 0 rgba(255,255,255,0.05)`,
+          background: `linear-gradient(135deg, ${category.color}12, rgba(17, 19, 24, 0.8))`,
+          border: `1px solid ${category.color}20`,
+          boxShadow: `0 0 30px ${category.color}12, inset 0 1px 0 rgba(255,255,255,0.05)`,
         }}
       >
         {/* Decorative glow orbs */}
@@ -74,19 +74,22 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
               <div
                 className="w-11 h-11 rounded-xl flex items-center justify-center"
                 style={{
-                  background: `linear-gradient(135deg, ${category.color}30, ${category.color}10)`,
-                  boxShadow: `0 0 20px ${category.color}20`,
+                  background: `${category.color}20`,
+                  boxShadow: `0 0 20px ${category.color}15`,
                 }}
               >
                 <Award size={22} style={{ color: category.color }} />
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                <div
+                  className="text-[10px] uppercase tracking-wider"
+                  style={{ color: 'var(--slate-ghost)', fontFamily: "'Space Grotesk', sans-serif" }}
+                >
                   里程碑达成
                 </div>
                 <div
                   className="text-base font-bold"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
                 >
                   {category.name}
                 </div>
@@ -95,9 +98,9 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
             <div
               className="text-lg font-bold px-3 py-1.5 rounded-xl"
               style={{
-                fontFamily: "'Space Grotesk', sans-serif",
+                fontFamily: "'JetBrains Mono', monospace",
                 color: category.color,
-                background: `${category.color}15`,
+                background: `${category.color}12`,
               }}
             >
               {milestone.milestoneHours}h
@@ -105,12 +108,12 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--silver-mist)' }}>
               <Clock size={14} />
               <span>累计 {totalHours} 小时</span>
             </div>
             {dateRange && (
-              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--silver-mist)' }}>
                 <Calendar size={14} />
                 <span>{dateRange}</span>
               </div>
@@ -118,8 +121,11 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
           </div>
 
           {keyEvents.length > 0 && (
-            <div style={{ borderTop: '1px solid var(--border)' }} className="pt-3">
-              <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+            <div style={{ borderTop: '1px solid var(--whisper-border)' }} className="pt-3">
+              <div
+                className="text-[10px] uppercase tracking-wider mb-2"
+                style={{ color: 'var(--slate-ghost)', fontFamily: "'Space Grotesk', sans-serif" }}
+              >
                 关键事件
               </div>
               <div className="space-y-1.5">
@@ -129,21 +135,24 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
                       className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
                       style={{ backgroundColor: category.color, boxShadow: `0 0 4px ${category.color}60` }}
                     />
-                    <span style={{ color: 'var(--text-secondary)' }}>{event.description}</span>
-                    <span className="text-xs ml-auto shrink-0" style={{ color: 'var(--text-muted)' }}>{event.date}</span>
+                    <span style={{ color: 'var(--silver-mist)' }}>{event.description}</span>
+                    <span className="text-xs ml-auto shrink-0" style={{ color: 'var(--slate-ghost)' }}>{event.date}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="mt-4 pt-3 flex items-center justify-between" style={{ borderTop: '1px solid var(--border)' }}>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          <div
+            className="mt-4 pt-3 flex items-center justify-between"
+            style={{ borderTop: '1px solid var(--whisper-border)' }}
+          >
+            <span className="text-xs" style={{ color: 'var(--slate-ghost)' }}>
               {new Date(milestone.achievedAt).toLocaleDateString('zh-CN')} 达成
             </span>
             <span
               className="text-xs font-semibold tracking-wider"
-              style={{ color: 'var(--text-muted)', fontFamily: "'Space Grotesk', sans-serif" }}
+              style={{ color: 'var(--slate-ghost)', fontFamily: "'Space Grotesk', sans-serif" }}
             >
               LEVELUP
             </span>
@@ -154,14 +163,14 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
       <button
         onClick={handleDownload}
         className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all duration-200"
-        style={{ color: 'var(--text-secondary)' }}
+        style={{ color: 'var(--silver-mist)' }}
         onMouseEnter={e => {
           e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-          e.currentTarget.style.color = 'var(--text-primary)'
+          e.currentTarget.style.color = 'var(--bright-chalk)'
         }}
         onMouseLeave={e => {
           e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = 'var(--text-secondary)'
+          e.currentTarget.style.color = 'var(--silver-mist)'
         }}
       >
         <Download size={14} />

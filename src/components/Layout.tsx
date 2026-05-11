@@ -12,32 +12,33 @@ const navItems = [
 export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* 电脑端侧边栏 */}
-      <nav className="hidden md:flex flex-col w-60 shrink-0 p-3 gap-1"
+      {/* Desktop Sidebar */}
+      <nav
+        className="hidden md:flex flex-col w-60 shrink-0 p-3 gap-1"
         style={{
           background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-          borderRight: '1px solid var(--border)',
+          borderRight: '1px solid var(--whisper-border)',
         }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2.5 mb-6 px-3 pt-2">
+        <div className="flex items-center gap-3 mb-8 px-3 pt-3">
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, var(--accent), #e8941a)',
-              boxShadow: '0 4px 15px var(--accent-glow)',
+              background: 'linear-gradient(135deg, var(--ember-glow), #D4840F)',
+              boxShadow: '0 4px 16px var(--ember-ghost)',
             }}
           >
-            <Zap size={18} className="text-[#0e1017]" />
+            <Zap size={20} className="text-[var(--carbon-base)]" />
           </div>
           <div>
             <h1
-              className="text-base font-bold tracking-tight"
-              style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+              className="text-lg font-bold tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
             >
               Levelup
             </h1>
-            <p className="text-[10px] tracking-wide" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-[11px] tracking-wide" style={{ color: 'var(--slate-ghost)' }}>
               技能时间追踪
             </p>
           </div>
@@ -51,10 +52,10 @@ export default function Layout() {
               to={item.to}
               end={item.to === '/'}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 animate-slide-in ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 animate-slide-in nav-indicator ${
                   isActive
-                    ? 'text-[var(--accent)]'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    ? 'text-[var(--ember-glow)] active'
+                    : 'text-[var(--silver-mist)] hover:text-[var(--bright-chalk)]'
                 }`
               }
               style={{ animationDelay: `${i * 50}ms` }}
@@ -62,22 +63,16 @@ export default function Layout() {
               {({ isActive }) => (
                 <>
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+                    className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200"
                     style={{
                       background: isActive
-                        ? 'var(--accent-soft)'
+                        ? 'var(--ember-soft)'
                         : 'transparent',
                     }}
                   >
                     <item.icon size={18} />
                   </div>
                   <span>{item.label}</span>
-                  {isActive && (
-                    <div
-                      className="ml-auto w-1.5 h-1.5 rounded-full"
-                      style={{ background: 'var(--accent)', boxShadow: '0 0 8px var(--accent-glow)' }}
-                    />
-                  )}
                 </>
               )}
             </NavLink>
@@ -85,18 +80,18 @@ export default function Layout() {
         </div>
 
         {/* Bottom section */}
-        <div className="mt-auto pt-4 space-y-0.5" style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="mt-auto pt-4 space-y-0.5" style={{ borderTop: '1px solid var(--whisper-border)' }}>
           <NavLink
             to="/settings"
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? 'text-[var(--accent)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  ? 'text-[var(--ember-glow)]'
+                  : 'text-[var(--slate-ghost)] hover:text-[var(--silver-mist)]'
               }`
             }
           >
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center">
               <Settings size={18} />
             </div>
             <span>设置</span>
@@ -106,12 +101,12 @@ export default function Layout() {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? 'text-[var(--accent)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  ? 'text-[var(--ember-glow)]'
+                  : 'text-[var(--slate-ghost)] hover:text-[var(--silver-mist)]'
               }`
             }
           >
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center">
               <HelpCircle size={18} />
             </div>
             <span>使用说明</span>
@@ -119,21 +114,21 @@ export default function Layout() {
         </div>
       </nav>
 
-      {/* 主内容区 */}
+      {/* Main Content */}
       <main className="flex-1 pb-24 md:pb-6 overflow-auto">
         <div className="max-w-5xl mx-auto p-4 md:p-8">
           <Outlet />
         </div>
       </main>
 
-      {/* 手机端底部导航 */}
+      {/* Mobile Bottom Navigation */}
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-16 z-50"
         style={{
-          background: 'rgba(14, 16, 23, 0.85)',
+          background: 'rgba(17, 19, 24, 0.9)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderTop: '1px solid var(--border)',
+          borderTop: '1px solid var(--whisper-border)',
         }}
       >
         {navItems.map(item => (
@@ -143,7 +138,7 @@ export default function Layout() {
             end={item.to === '/'}
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 px-3 py-1.5 text-[10px] font-medium transition-all duration-200 ${
-                isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'
+                isActive ? 'text-[var(--ember-glow)]' : 'text-[var(--slate-ghost)]'
               }`
             }
           >
@@ -152,7 +147,7 @@ export default function Layout() {
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                   style={{
-                    background: isActive ? 'var(--accent-soft)' : 'transparent',
+                    background: isActive ? 'var(--ember-soft)' : 'transparent',
                   }}
                 >
                   <item.icon size={18} />
@@ -166,7 +161,7 @@ export default function Layout() {
           to="/settings"
           className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 text-[10px] font-medium transition-all duration-200 ${
-              isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'
+              isActive ? 'text-[var(--ember-glow)]' : 'text-[var(--slate-ghost)]'
             }`
           }
         >
@@ -179,7 +174,7 @@ export default function Layout() {
           to="/guide"
           className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 text-[10px] font-medium transition-all duration-200 ${
-              isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'
+              isActive ? 'text-[var(--ember-glow)]' : 'text-[var(--slate-ghost)]'
             }`
           }
         >

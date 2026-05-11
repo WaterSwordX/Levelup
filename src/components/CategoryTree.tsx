@@ -28,7 +28,7 @@ export default function CategoryTree({ categories, entries, onSelect, selectedId
   if (children.length === 0 && level === 0) return null
 
   return (
-    <div className={level > 0 ? 'ml-5 pl-3' : ''} style={level > 0 ? { borderLeft: '1px solid var(--border)' } : undefined}>
+    <div className={level > 0 ? 'ml-5 pl-3' : ''} style={level > 0 ? { borderLeft: '1px solid var(--whisper-border)' } : undefined}>
       {children.map(cat => (
         <CategoryNode
           key={cat.id}
@@ -65,11 +65,11 @@ function CategoryNode({ category, categories, entries, onSelect, selectedId, lev
   return (
     <div>
       <div
-        className="flex items-center gap-2 py-2 px-2.5 rounded-xl cursor-pointer transition-all duration-200 group"
+        className="flex items-center gap-2 py-2.5 px-2.5 rounded-xl cursor-pointer transition-all duration-200 group"
         style={{
-          background: isSelected ? 'var(--accent-soft)' : 'transparent',
-          color: isSelected ? 'var(--accent)' : 'var(--text-primary)',
-          border: isSelected ? '1px solid rgba(245, 166, 35, 0.15)' : '1px solid transparent',
+          background: isSelected ? 'var(--ember-soft)' : 'transparent',
+          color: isSelected ? '#E8941A' : 'var(--bright-chalk)',
+          border: isSelected ? '1px solid rgba(232, 148, 26, 0.15)' : '1px solid transparent',
         }}
         onClick={() => onSelect?.(category)}
         onMouseEnter={e => {
@@ -82,7 +82,7 @@ function CategoryNode({ category, categories, entries, onSelect, selectedId, lev
         {hasChildren ? (
           <button
             className="p-0.5 rounded-md transition-colors duration-200"
-            style={{ color: 'var(--text-muted)' }}
+            style={{ color: 'var(--slate-ghost)' }}
             onClick={e => { e.stopPropagation(); setExpanded(!expanded) }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
@@ -98,7 +98,10 @@ function CategoryNode({ category, categories, entries, onSelect, selectedId, lev
         />
         <span className="text-sm font-medium flex-1 truncate">{category.name}</span>
         {showTime && totalTime > 0 && (
-          <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+          <span
+            className="text-xs flex items-center gap-1"
+            style={{ color: 'var(--slate-ghost)', fontFamily: "'JetBrains Mono', monospace" }}
+          >
             <Clock size={12} />
             {formatMinutes(totalTime)}
           </span>

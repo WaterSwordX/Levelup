@@ -55,23 +55,23 @@ export default function Record({ categories, entries, setEntries }: Props) {
     <div className="space-y-6 animate-fade-in-up">
       <div>
         <h2
-          className="text-2xl font-bold"
-          style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+          className="text-2xl font-bold tracking-tight"
+          style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
         >
           记录事件
         </h2>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-sm mt-1" style={{ color: 'var(--slate-ghost)' }}>
           手动记录你的技能练习时间
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="glass-card p-5 space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>选择分类</label>
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>选择分类</label>
           <CategoryPicker categories={categories} entries={entries} selectedId={categoryId} onSelect={setCategoryId} />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>做了什么</label>
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>做了什么</label>
           <input
             type="text"
             value={description}
@@ -82,18 +82,26 @@ export default function Record({ categories, entries, setEntries }: Props) {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>时长（分钟）</label>
-            <input type="number" value={duration} onChange={e => setDuration(e.target.value)} placeholder="60" min="1" className="input-field" />
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>时长（分钟）</label>
+            <input
+              type="number"
+              value={duration}
+              onChange={e => setDuration(e.target.value)}
+              placeholder="60"
+              min="1"
+              className="input-field"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>日期</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>日期</label>
             <input type="date" value={date} onChange={e => setDate(e.target.value)} className="input-field" />
           </div>
         </div>
         <button
           type="submit"
           disabled={!categoryId || !duration || Number(duration) <= 0}
-          className="btn-primary flex items-center gap-1.5 px-5 py-2.5 text-sm"
+          className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm"
         >
           <Plus size={16} />
           添加记录
@@ -103,7 +111,7 @@ export default function Record({ categories, entries, setEntries }: Props) {
       <div className="space-y-3">
         <h3 className="section-title">历史记录 ({entries.length})</h3>
         {sortedEntries.length === 0 ? (
-          <div className="glass-card p-10 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+          <div className="glass-card p-10 text-center text-sm" style={{ color: 'var(--slate-ghost)' }}>
             还没有记录，添加你的第一条吧
           </div>
         ) : (
@@ -113,32 +121,32 @@ export default function Record({ categories, entries, setEntries }: Props) {
               return (
                 <div
                   key={entry.id}
-                  className="glass-card p-3.5 flex items-start gap-3 group animate-fade-in-up"
+                  className="glass-card p-4 flex items-start gap-3 group animate-fade-in-up"
                 >
                   <span
                     className="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0"
-                    style={{ backgroundColor: cat?.color ?? 'var(--text-muted)', boxShadow: `0 0 6px ${cat?.color ?? 'var(--text-muted)'}60` }}
+                    style={{ backgroundColor: cat?.color ?? 'var(--slate-ghost)', boxShadow: `0 0 6px ${cat?.color ?? 'var(--slate-ghost)'}60` }}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                      <span className="text-sm font-medium truncate" style={{ color: 'var(--bright-chalk)' }}>
                         {entry.description || getCategoryPath(entry.categoryId, categories)}
                       </span>
-                      <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+                      <span className="text-xs flex items-center gap-1" style={{ color: 'var(--slate-ghost)' }}>
                         <Clock size={12} />
-                        {formatMinutes(entry.duration)}
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{formatMinutes(entry.duration)}</span>
                       </span>
                     </div>
-                    <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                    <div className="text-xs mt-1" style={{ color: 'var(--slate-ghost)' }}>
                       {getCategoryPath(entry.categoryId, categories)} · {entry.date}
                     </div>
                   </div>
                   <button
                     onClick={() => handleDelete(entry.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all duration-200"
-                    style={{ color: 'var(--text-muted)' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--coral)'; e.currentTarget.style.background = 'rgba(255, 107, 107, 0.1)' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent' }}
+                    className="opacity-0 group-hover:opacity-100 p-2 rounded-lg transition-all duration-200"
+                    style={{ color: 'var(--slate-ghost)' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--coral-pulse)'; e.currentTarget.style.background = 'var(--coral-soft)' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)'; e.currentTarget.style.background = 'transparent' }}
                   >
                     <Trash2 size={14} />
                   </button>

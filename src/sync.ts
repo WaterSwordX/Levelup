@@ -46,7 +46,7 @@ export function getLastSyncTime(): string | null {
   return localStorage.getItem(LAST_SYNC_KEY)
 }
 
-function setLastSyncTime() {
+export function setLastSyncTime() {
   localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString())
 }
 
@@ -63,6 +63,7 @@ function gistHeaders(token: string): HeadersInit {
     Authorization: `token ${token}`,
     Accept: 'application/vnd.github.v3+json',
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
   }
 }
 
@@ -112,6 +113,7 @@ export async function updateGist(token: string, gistId: string, data: SyncData):
 export async function readGist(token: string, gistId: string): Promise<SyncData> {
   const resp = await fetch(`${GIST_API}/${gistId}`, {
     headers: gistHeaders(token),
+    cache: 'no-store',
   })
 
   if (!resp.ok) {
@@ -130,7 +132,8 @@ export async function readGist(token: string, gistId: string): Promise<SyncData>
 export async function verifyToken(token: string): Promise<{ valid: boolean; username?: string }> {
   try {
     const resp = await fetch('https://api.github.com/user', {
-      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' },
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' },
+      cache: 'no-store',
     })
     if (!resp.ok) return { valid: false }
     const user = await resp.json()
@@ -146,6 +149,7 @@ export async function findExistingGist(token: string): Promise<string | null> {
     console.log('[Sync] Searching for existing Gist...')
     const resp = await fetch(`${GIST_API}?per_page=100`, {
       headers: gistHeaders(token),
+      cache: 'no-store',
     })
     console.log('[Sync] Gist list response:', resp.status)
     if (!resp.ok) {
@@ -166,6 +170,51 @@ export async function findExistingGist(token: string): Promise<string | null> {
     return match ? match.id : null
   } catch (e) {
     console.log('[Sync] findExistingGist error:', e)
+    return null
+  }
+}
+
+// Find the best existing Gist with actual data (most entries)
+export async function findBestExistingGist(token: string): Promise<string | null> {
+  try {
+    console.log('[Sync] Searching for best existing Gist...')
+    const resp = await fetch(`${GIST_API}?per_page=100`, {
+      headers: gistHeaders(token),
+      cache: 'no-store',
+    })
+    if (!resp.ok) return null
+
+    const gists = await resp.json()
+    const candidates = gists.filter((g: { description: string; files: Record<string, unknown> }) =>
+      g.description?.includes('Levelup') && g.files?.[GIST_FILENAME]
+    )
+
+    if (candidates.length === 0) return null
+    if (candidates.length === 1) return candidates[0].id
+
+    // Multiple matches: read each and pick the one with the most data
+    console.log('[Sync] Found', candidates.length, 'matching Gists, comparing data...')
+    let bestId = candidates[0].id
+    let bestScore = -1
+
+    for (const g of candidates) {
+      try {
+        const data = await readGist(token, g.id)
+        const score = (data.categories?.length || 0) + (data.entries?.length || 0) + (data.goals?.length || 0)
+        console.log('[Sync] Gist', g.id, 'score:', score, '(categories:', data.categories?.length, 'entries:', data.entries?.length, ')')
+        if (score > bestScore) {
+          bestScore = score
+          bestId = g.id
+        }
+      } catch {
+        console.log('[Sync] Failed to read Gist', g.id, ', skipping')
+      }
+    }
+
+    console.log('[Sync] Best Gist:', bestId, 'with score:', bestScore)
+    return bestId
+  } catch (e) {
+    console.log('[Sync] findBestExistingGist error:', e)
     return null
   }
 }
@@ -235,4 +284,63 @@ export function disconnectSync() {
   setStoredToken(null)
   setStoredGistId(null)
   localStorage.removeItem(LAST_SYNC_KEY)
+}
+
+// Clean up duplicate Gists: keep the best one, delete the rest
+export async function cleanupDuplicateGists(token: string): Promise<{ kept: string; deleted: number }> {
+  const resp = await fetch(`${GIST_API}?per_page=100`, {
+    headers: gistHeaders(token),
+    cache: 'no-store',
+  })
+  if (!resp.ok) throw new Error(`无法列出 Gists: ${resp.status}`)
+
+  const gists = await resp.json()
+  const candidates = gists.filter((g: { description: string; files: Record<string, unknown> }) =>
+    g.description?.includes('Levelup') && g.files?.[GIST_FILENAME]
+  )
+
+  if (candidates.length <= 1) {
+    return { kept: candidates[0]?.id || '', deleted: 0 }
+  }
+
+  // Read all candidates and pick the best one
+  let bestId = candidates[0].id
+  let bestScore = -1
+  const scores = new Map<string, number>()
+
+  for (const g of candidates) {
+    try {
+      const data = await readGist(token, g.id)
+      const score = (data.categories?.length || 0) + (data.entries?.length || 0) + (data.goals?.length || 0)
+      scores.set(g.id, score)
+      if (score > bestScore) {
+        bestScore = score
+        bestId = g.id
+      }
+    } catch {
+      scores.set(g.id, -1)
+    }
+  }
+
+  console.log('[Sync] Cleanup: keeping Gist', bestId, 'with score', bestScore)
+
+  // Delete all except the best one
+  let deleted = 0
+  for (const g of candidates) {
+    if (g.id === bestId) continue
+    try {
+      const delResp = await fetch(`${GIST_API}/${g.id}`, {
+        method: 'DELETE',
+        headers: gistHeaders(token),
+      })
+      if (delResp.ok) {
+        deleted++
+        console.log('[Sync] Deleted duplicate Gist:', g.id)
+      }
+    } catch {
+      console.log('[Sync] Failed to delete Gist:', g.id)
+    }
+  }
+
+  return { kept: bestId, deleted }
 }

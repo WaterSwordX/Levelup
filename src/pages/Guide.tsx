@@ -4,7 +4,7 @@ const sections = [
   {
     icon: FolderTree,
     title: '技能分类',
-    color: '#f5a623',
+    color: '#E8941A',
     steps: [
       '进入「分类」页面，点击右上角「添加大类」创建顶级分类，如：音乐、编程、绘画',
       '鼠标悬停在分类上，点击「+」图标可添加子分类，支持无限细分',
@@ -16,7 +16,7 @@ const sections = [
   {
     icon: PenLine,
     title: '记录事件',
-    color: '#4ecdc4',
+    color: '#4ECDC4',
     steps: [
       '进入「记录」页面',
       '从分类选择器中选择一个分类（可选任意层级）',
@@ -29,7 +29,7 @@ const sections = [
   {
     icon: Timer,
     title: '专注计时',
-    color: '#a78bfa',
+    color: '#A78BFA',
     steps: [
       '进入「专注」页面',
       '先选择一个技能分类',
@@ -43,7 +43,7 @@ const sections = [
   {
     icon: Target,
     title: '目标设定',
-    color: '#ff6b6b',
+    color: '#E86B6B',
     steps: [
       '在「分类」页面，鼠标悬停在任意分类上',
       '点击「靶心」图标打开目标设定',
@@ -55,7 +55,7 @@ const sections = [
   {
     icon: LayoutDashboard,
     title: '看板',
-    color: '#f5a623',
+    color: '#E8941A',
     steps: [
       '首页「看板」展示你的整体数据概览',
       '顶部四个卡片：今日、本周、本月、总计投入时间',
@@ -67,7 +67,7 @@ const sections = [
   {
     icon: BarChart3,
     title: '统计图表',
-    color: '#4ecdc4',
+    color: '#4ECDC4',
     steps: [
       '进入「统计」页面查看可视化数据',
       '饼图：各分类的时间占比',
@@ -78,7 +78,7 @@ const sections = [
   {
     icon: Award,
     title: '里程碑成就',
-    color: '#a78bfa',
+    color: '#A78BFA',
     steps: [
       '当某个技能累计达到特定时间（1h、10h、50h、100h、200h、500h、1000h 等）时，自动生成成就卡片',
       '成就卡片显示在看板页面的「最近达成的里程碑」区域',
@@ -89,7 +89,7 @@ const sections = [
   {
     icon: Download,
     title: '数据导出',
-    color: '#ff6b6b',
+    color: '#E86B6B',
     steps: [
       '进入「统计」页面，右上角有两个导出按钮',
       '「导出CSV」：下载表格文件，可用 Excel 打开',
@@ -99,7 +99,7 @@ const sections = [
   {
     icon: Clock,
     title: '数据说明',
-    color: '#8a8d9b',
+    color: '#5A5E6B',
     steps: [
       '所有数据保存在浏览器本地（localStorage），不会上传到任何服务器',
       '清除浏览器缓存会导致数据丢失，建议定期使用「导出CSV」备份',
@@ -114,12 +114,12 @@ export default function Guide() {
     <div className="space-y-6 animate-fade-in-up">
       <div>
         <h2
-          className="text-2xl font-bold"
-          style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+          className="text-2xl font-bold tracking-tight"
+          style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
         >
           使用说明
         </h2>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-sm mt-1" style={{ color: 'var(--silver-mist)' }}>
           Levelup 帮助你记录在各类技能上的时间投入，让积累看得见。基于刻意练习理念，追踪每一项技能的成长轨迹。
         </p>
       </div>
@@ -131,22 +131,21 @@ export default function Guide() {
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center"
                 style={{
-                  background: `${section.color}15`,
-                  boxShadow: `0 0 15px ${section.color}10`,
+                  background: `${section.color}12`,
                 }}
               >
                 <section.icon size={18} style={{ color: section.color }} />
               </div>
               <h3
                 className="text-base font-semibold"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}
+                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
               >
                 {section.title}
               </h3>
             </div>
             <ol className="space-y-2 pl-[52px]">
               {section.steps.map((step, i) => (
-                <li key={i} className="text-sm list-decimal" style={{ color: 'var(--text-secondary)' }}>
+                <li key={i} className="text-sm list-decimal" style={{ color: 'var(--silver-mist)' }}>
                   {step}
                 </li>
               ))}
@@ -158,32 +157,32 @@ export default function Guide() {
       <div
         className="glass-card p-5"
         style={{
-          border: '1px solid rgba(245, 166, 35, 0.15)',
-          background: 'rgba(245, 166, 35, 0.03)',
+          border: '1px solid rgba(232, 148, 26, 0.15)',
+          background: 'rgba(232, 148, 26, 0.03)',
         }}
       >
         <h3
           className="text-sm font-semibold flex items-center gap-2 mb-3"
-          style={{ color: 'var(--accent)' }}
+          style={{ color: '#E8941A' }}
         >
           <Lightbulb size={16} />
           小贴士
         </h3>
-        <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+        <ul className="space-y-2 text-sm" style={{ color: 'var(--silver-mist)' }}>
           <li className="flex items-start gap-2">
-            <span style={{ color: 'var(--accent)' }}>·</span>
+            <span style={{ color: '#E8941A' }}>·</span>
             每天坚持记录，哪怕只记录了「做了什么」也是有价值的
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: 'var(--accent)' }}>·</span>
+            <span style={{ color: '#E8941A' }}>·</span>
             设定一个阶段性目标（如 100 小时），看着进度条前进会很有成就感
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: 'var(--accent)' }}>·</span>
+            <span style={{ color: '#E8941A' }}>·</span>
             里程碑达成时记得保存成就卡片，记录你的成长轨迹
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: 'var(--accent)' }}>·</span>
+            <span style={{ color: '#E8941A' }}>·</span>
             定期导出 CSV 备份数据，防止浏览器缓存丢失
           </li>
         </ul>

@@ -65,7 +65,7 @@ export default function App() {
           <Route path="/focus" element={<Focus categories={categories} entries={entries} setEntries={handleSetEntries} />} />
           <Route path="/stats" element={<Stats categories={categories} entries={entries} />} />
           <Route path="/guide" element={<Guide />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings" element={<Settings currentData={{ categories, entries, goals, milestones }} />} />
         </Route>
       </Routes>
     </BrowserRouter>

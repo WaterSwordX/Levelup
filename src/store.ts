@@ -122,3 +122,42 @@ export function importAllData(data: { categories?: Category[]; entries?: TimeEnt
   if (data.goals) saveGoals(data.goals)
   if (data.milestones) saveMilestones(data.milestones)
 }
+
+// Merge cloud data with local data (union by id, local wins on conflicts)
+export function mergeAllData(cloud: { categories?: Category[]; entries?: TimeEntry[]; goals?: Goal[]; milestones?: Milestone[] }, localOverride?: { categories?: Category[]; entries?: TimeEntry[]; goals?: Goal[]; milestones?: Milestone[] }) {
+  const local = localOverride ? {
+    categories: localOverride.categories || [],
+    entries: localOverride.entries || [],
+    goals: localOverride.goals || [],
+    milestones: localOverride.milestones || [],
+  } : exportAllData()
+  console.log('[Merge] Local:', { cat: local.categories.length, entries: local.entries.length, goals: local.goals.length })
+  console.log('[Merge] Cloud:', { cat: cloud.categories?.length, entries: cloud.entries?.length, goals: cloud.goals?.length })
+
+  const mergeById = <T extends { id: string }>(localArr: T[], cloudArr: T[]): T[] => {
+    const map = new Map<string, T>()
+    for (const item of cloudArr) map.set(item.id, item)
+    for (const item of localArr) map.set(item.id, item) // local wins on conflict
+    return Array.from(map.values())
+  }
+
+  const merged = {
+    categories: mergeById(local.categories, cloud.categories || []),
+    entries: mergeById(local.entries, cloud.entries || []),
+    goals: mergeById(local.goals, cloud.goals || []),
+    milestones: mergeById(local.milestones, cloud.milestones || []),
+  }
+
+  console.log('[Merge] Result:', { cat: merged.categories.length, entries: merged.entries.length, goals: merged.goals.length })
+
+  saveCategories(merged.categories)
+  saveEntries(merged.entries)
+  saveGoals(merged.goals)
+  saveMilestones(merged.milestones)
+
+  // Verify save
+  const verify = exportAllData()
+  console.log('[Merge] Verify after save:', { cat: verify.categories.length, entries: verify.entries.length })
+
+  return merged
+}
