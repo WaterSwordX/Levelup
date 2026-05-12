@@ -85,7 +85,7 @@ export default function Timer({ onFinish, disabled }: Props) {
           style={{
             background: running ? 'rgba(232, 148, 26, 0.06)' : 'transparent',
             transform: 'scale(1.5)',
-            transition: 'all 0.6s ease',
+            transition: 'transform 600ms var(--ease-out), opacity 600ms var(--ease-out), background 600ms var(--ease-out)',
             animation: running ? 'breathe 4s ease-in-out infinite' : 'none',
             opacity: running ? 1 : 0,
           }}
@@ -95,7 +95,7 @@ export default function Timer({ onFinish, disabled }: Props) {
           style={{
             background: running ? 'rgba(232, 148, 26, 0.04)' : 'transparent',
             transform: 'scale(1.8)',
-            transition: 'all 0.8s ease',
+            transition: 'transform 800ms var(--ease-out), opacity 800ms var(--ease-out), background 800ms var(--ease-out)',
             animation: running ? 'breathe 5s ease-in-out infinite' : 'none',
             opacity: running ? 0.6 : 0,
           }}
@@ -119,7 +119,7 @@ export default function Timer({ onFinish, disabled }: Props) {
             boxShadow: running
               ? '0 0 40px rgba(232, 148, 26, 0.15), inset 0 0 30px rgba(232, 148, 26, 0.05)'
               : 'none',
-            transition: 'all 0.4s ease',
+            transition: 'border-color 400ms var(--ease-out), box-shadow 400ms var(--ease-out), background 400ms var(--ease-out)',
           }}
         >
           <div
@@ -128,7 +128,7 @@ export default function Timer({ onFinish, disabled }: Props) {
               fontFamily: "'JetBrains Mono', monospace",
               color: running ? 'var(--ember-bright)' : 'var(--bright-chalk)',
               textShadow: running ? '0 0 20px rgba(232, 148, 26, 0.4)' : 'none',
-              transition: 'color 0.3s ease, text-shadow 0.3s ease',
+              transition: 'color 300ms var(--ease-out), text-shadow 300ms var(--ease-out)',
             }}
           >
             {format(elapsed)}

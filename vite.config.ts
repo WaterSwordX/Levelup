@@ -34,8 +34,8 @@ export default defineConfig({
             options: {
               cacheName: 'github-api',
               expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 },
-              networkTimeoutSeconds: 10,
-              cacheableResponse: { statuses: [0, 200] },
+              networkTimeoutSeconds: 15,
+              cacheableResponse: { statuses: [200] },
             },
           },
           {

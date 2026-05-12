@@ -45,6 +45,11 @@
   --radius-md: 10px;
   --radius-lg: 14px;
 
+  /* Easing Curves */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
   color-scheme: dark;
 }
 
@@ -116,7 +121,7 @@ select {
   color: var(--bright-chalk);
   border: 1px solid var(--whisper-border);
   border-radius: var(--radius-md);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
 }
 
 input:focus,
@@ -147,12 +152,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background: var(--carbon-base);
   border: 1px solid var(--whisper-border);
   border-radius: var(--radius-lg);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
 }
 
-.surface-card:hover {
-  border-color: var(--ghost-border);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .surface-card:hover {
+    border-color: var(--ghost-border);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  }
 }
 
 /* 交互卡片 — 带倾斜效果 */
@@ -160,21 +167,23 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background: var(--carbon-base);
   border: 1px solid var(--whisper-border);
   border-radius: var(--radius-lg);
-  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+  transition: transform 200ms var(--ease-out), border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
   transform-style: preserve-3d;
 }
 
-.tilt-card:hover {
-  border-color: var(--ember-ghost);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 30px var(--ember-ghost);
+@media (hover: hover) and (pointer: fine) {
+  .tilt-card:hover {
+    border-color: var(--ember-ghost);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 30px var(--ember-ghost);
+  }
 }
 
 /* ===== Reveal Animation ===== */
 .reveal-section {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(16px);
+  transition: opacity 400ms var(--ease-out),
+              transform 400ms var(--ease-out);
 }
 
 .reveal-section.revealed {
@@ -243,26 +252,26 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fadeInUp 400ms var(--ease-out) both;
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out both;
+  animation: fadeIn 250ms var(--ease-out) both;
 }
 
 .animate-slide-in {
-  animation: slideInRight 0.3s ease-out both;
+  animation: slideInRight 250ms var(--ease-out) both;
 }
 
 /* Stagger children */
 .stagger-children > :nth-child(1) { animation-delay: 0ms; }
-.stagger-children > :nth-child(2) { animation-delay: 50ms; }
-.stagger-children > :nth-child(3) { animation-delay: 100ms; }
-.stagger-children > :nth-child(4) { animation-delay: 150ms; }
-.stagger-children > :nth-child(5) { animation-delay: 200ms; }
-.stagger-children > :nth-child(6) { animation-delay: 250ms; }
-.stagger-children > :nth-child(7) { animation-delay: 300ms; }
-.stagger-children > :nth-child(8) { animation-delay: 350ms; }
+.stagger-children > :nth-child(2) { animation-delay: 40ms; }
+.stagger-children > :nth-child(3) { animation-delay: 80ms; }
+.stagger-children > :nth-child(4) { animation-delay: 120ms; }
+.stagger-children > :nth-child(5) { animation-delay: 160ms; }
+.stagger-children > :nth-child(6) { animation-delay: 200ms; }
+.stagger-children > :nth-child(7) { animation-delay: 240ms; }
+.stagger-children > :nth-child(8) { animation-delay: 280ms; }
 
 /* ===== Button Styles ===== */
 .btn-primary {
@@ -273,7 +282,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border: 1px solid rgba(255, 235, 169, 0.4);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
   box-shadow: 0 8px 24px rgba(217, 177, 95, 0.2);
   overflow: hidden;
 }
@@ -284,21 +293,24 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   inset: 0;
   background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(242, 215, 142, 0.3), transparent 50%);
   opacity: 0;
-  transition: opacity 0.18s ease;
+  transition: opacity 160ms var(--ease-out);
   pointer-events: none;
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 36px rgba(217, 177, 95, 0.3);
-}
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 36px rgba(217, 177, 95, 0.3);
+  }
 
-.btn-primary:hover::after {
-  opacity: 1;
+  .btn-primary:hover::after {
+    opacity: 1;
+  }
 }
 
 .btn-primary:active {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(0) scale(0.97);
+  transition-duration: 100ms;
 }
 
 .btn-primary:disabled {
@@ -314,18 +326,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border: 1px solid var(--whisper-border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: transform 160ms var(--ease-out), background 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
 }
 
-.btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--ghost-border);
-  color: var(--bright-chalk);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--ghost-border);
+    color: var(--bright-chalk);
+    transform: translateY(-1px);
+  }
 }
 
 .btn-ghost:active {
-  transform: translateY(0);
+  transform: scale(0.97);
+  transition-duration: 100ms;
 }
 
 /* ===== Input class ===== */
@@ -337,7 +352,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: var(--radius-md);
   font-size: 14px;
   color: var(--bright-chalk);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
 }
 
 .input-field::placeholder {
@@ -396,11 +411,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--accent-color, var(--ember-glow)), transparent);
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 200ms var(--ease-out);
 }
 
-.stat-card:hover::before {
-  opacity: 0.8;
+@media (hover: hover) and (pointer: fine) {
+  .stat-card:hover::before {
+    opacity: 0.8;
+  }
 }
 
 .stat-card::after {
@@ -409,12 +426,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   inset: 0;
   background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), var(--accent-color, rgba(232, 148, 26, 0.06)), transparent 60%);
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 200ms var(--ease-out);
   pointer-events: none;
 }
 
-.stat-card:hover::after {
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .stat-card:hover::after {
+    opacity: 1;
+  }
 }
 
 /* ===== Navigation Active Indicator ===== */
@@ -434,7 +453,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background: var(--ember-glow);
   box-shadow: 0 0 10px var(--ember-ghost);
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 200ms var(--ease-out);
 }
 
 .nav-indicator.active::after {

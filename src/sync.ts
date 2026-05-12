@@ -30,12 +30,26 @@ export function setStoredToken(token: string | null) {
 
 // Gist ID management
 export function getStoredGistId(): string | null {
-  return localStorage.getItem(GIST_ID_KEY)
+  const raw = localStorage.getItem(GIST_ID_KEY)
+  if (!raw) return null
+  // Sanitize: Gist IDs are hex-only (0-9, a-f). Fix common confusable chars.
+  const sanitized = raw.replace(/[lLiIoO]/g, c => {
+    if (c === 'l' || c === 'L' || c === 'i' || c === 'I') return '1'
+    if (c === 'o' || c === 'O') return '0'
+    return c
+  })
+  if (sanitized !== raw) {
+    console.warn('[Sync] Gist ID contained non-hex chars, auto-corrected:', raw, '->', sanitized)
+    localStorage.setItem(GIST_ID_KEY, sanitized)
+  }
+  return sanitized
 }
 
 export function setStoredGistId(id: string | null) {
   if (id) {
-    localStorage.setItem(GIST_ID_KEY, id)
+    // Ensure only valid hex characters
+    const clean = id.replace(/[^0-9a-f]/g, '')
+    localStorage.setItem(GIST_ID_KEY, clean)
   } else {
     localStorage.removeItem(GIST_ID_KEY)
   }
@@ -58,19 +72,24 @@ export function isSyncConfigured(): boolean {
 // GitHub Gist API
 const GIST_API = 'https://api.github.com/gists'
 
+// Bypass Service Worker cache by appending a timestamp to URLs
+function bustCache(url: string): string {
+  const sep = url.includes('?') ? '&' : '?'
+  return `${url}${sep}_t=${Date.now()}`
+}
+
 function gistHeaders(token: string): HeadersInit {
   return {
     Authorization: `token ${token}`,
     Accept: 'application/vnd.github.v3+json',
     'Content-Type': 'application/json',
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
   }
 }
 
 export async function createGist(token: string, data: SyncData): Promise<string> {
   let resp: Response
   try {
-    resp = await fetch(GIST_API, {
+    resp = await fetch(bustCache(GIST_API), {
       method: 'POST',
       headers: gistHeaders(token),
       body: JSON.stringify({
@@ -103,7 +122,7 @@ export async function createGist(token: string, data: SyncData): Promise<string>
 export async function updateGist(token: string, gistId: string, data: SyncData): Promise<void> {
   let resp: Response
   try {
-    resp = await fetch(`${GIST_API}/${gistId}`, {
+    resp = await fetch(bustCache(`${GIST_API}/${gistId}`), {
       method: 'PATCH',
       headers: gistHeaders(token),
       body: JSON.stringify({
@@ -131,9 +150,8 @@ export async function updateGist(token: string, gistId: string, data: SyncData):
 export async function readGist(token: string, gistId: string): Promise<SyncData> {
   let resp: Response
   try {
-    resp = await fetch(`${GIST_API}/${gistId}`, {
+    resp = await fetch(bustCache(`${GIST_API}/${gistId}`), {
       headers: gistHeaders(token),
-      cache: 'no-store',
     })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -159,9 +177,8 @@ export async function readGist(token: string, gistId: string): Promise<SyncData>
 // Verify token is valid
 export async function verifyToken(token: string): Promise<{ valid: boolean; username?: string }> {
   try {
-    const resp = await fetch('https://api.github.com/user', {
-      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' },
-      cache: 'no-store',
+    const resp = await fetch(bustCache('https://api.github.com/user'), {
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' },
     })
     if (!resp.ok) return { valid: false }
     const user = await resp.json()
@@ -179,9 +196,8 @@ export async function verifyToken(token: string): Promise<{ valid: boolean; user
 export async function findExistingGist(token: string): Promise<string | null> {
   try {
     console.log('[Sync] Searching for existing Gist...')
-    const resp = await fetch(`${GIST_API}?per_page=100`, {
+    const resp = await fetch(bustCache(`${GIST_API}?per_page=100`), {
       headers: gistHeaders(token),
-      cache: 'no-store',
     })
     console.log('[Sync] Gist list response:', resp.status)
     if (!resp.ok) {
@@ -214,9 +230,8 @@ export async function findExistingGist(token: string): Promise<string | null> {
 export async function findBestExistingGist(token: string): Promise<string | null> {
   try {
     console.log('[Sync] Searching for best existing Gist...')
-    const resp = await fetch(`${GIST_API}?per_page=100`, {
+    const resp = await fetch(bustCache(`${GIST_API}?per_page=100`), {
       headers: gistHeaders(token),
-      cache: 'no-store',
     })
     if (!resp.ok) return null
 
@@ -330,9 +345,8 @@ export function disconnectSync() {
 export async function cleanupDuplicateGists(token: string): Promise<{ kept: string; deleted: number }> {
   let resp: Response
   try {
-    resp = await fetch(`${GIST_API}?per_page=100`, {
+    resp = await fetch(bustCache(`${GIST_API}?per_page=100`), {
       headers: gistHeaders(token),
-      cache: 'no-store',
     })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -378,7 +392,7 @@ export async function cleanupDuplicateGists(token: string): Promise<{ kept: stri
   for (const g of candidates) {
     if (g.id === bestId) continue
     try {
-      const delResp = await fetch(`${GIST_API}/${g.id}`, {
+      const delResp = await fetch(bustCache(`${GIST_API}/${g.id}`), {
         method: 'DELETE',
         headers: gistHeaders(token),
       })
