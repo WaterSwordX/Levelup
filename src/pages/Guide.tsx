@@ -1,6 +1,5 @@
 import { FolderTree, PenLine, Timer, BarChart3, Target, Award, Download, Clock, LayoutDashboard, Lightbulb } from 'lucide-react'
 import RevealSection from '../components/RevealSection'
-import TiltCard from '../components/TiltCard'
 
 const sections = [
   {
@@ -101,7 +100,7 @@ const sections = [
   {
     icon: Clock,
     title: '数据说明',
-    color: '#5A5E6B',
+    color: '#4A4E59',
     steps: [
       '所有数据保存在浏览器本地（localStorage），不会上传到任何服务器',
       '清除浏览器缓存会导致数据丢失，建议定期使用「导出CSV」备份',
@@ -117,63 +116,64 @@ export default function Guide() {
       <RevealSection>
         <div>
           <h2
-            className="text-2xl font-bold tracking-tight"
+            className="text-xl font-bold tracking-tight"
             style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
           >
             使用说明
           </h2>
-          <p className="text-sm mt-1" style={{ color: 'var(--silver-mist)' }}>
-            Levelup 帮助你记录在各类技能上的时间投入，让积累看得见。基于刻意练习理念，追踪每一项技能的成长轨迹。
+          <p className="text-xs mt-1" style={{ color: 'var(--silver-mist)' }}>
+            Levelup 帮助你记录在各类技能上的时间投入，让积累看得见。
           </p>
         </div>
       </RevealSection>
 
       <div className="space-y-3">
         {sections.map((section, i) => (
-          <RevealSection key={section.title} delay={i * 40}>
-            <TiltCard className="p-5">
+          <RevealSection key={section.title} delay={i * 30}>
+            <div className="p-5" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
               <div className="flex items-center gap-3 mb-3">
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  className="w-9 h-9 rounded-lg flex items-center justify-center"
                   style={{ background: `${section.color}12` }}
                 >
-                  <section.icon size={18} style={{ color: section.color }} />
+                  <section.icon size={16} style={{ color: section.color }} />
                 </div>
                 <h3
-                  className="text-base font-semibold"
+                  className="text-sm font-semibold"
                   style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
                 >
                   {section.title}
                 </h3>
               </div>
-              <ol className="space-y-2 pl-[52px]">
+              <ol className="space-y-1.5 pl-12">
                 {section.steps.map((step, j) => (
-                  <li key={j} className="text-sm list-decimal" style={{ color: 'var(--silver-mist)' }}>
+                  <li key={j} className="text-xs list-decimal" style={{ color: 'var(--silver-mist)' }}>
                     {step}
                   </li>
                 ))}
               </ol>
-            </TiltCard>
+            </div>
           </RevealSection>
         ))}
       </div>
 
-      <RevealSection delay={200}>
-        <TiltCard
+      <RevealSection delay={150}>
+        <div
           className="p-5"
           style={{
-            border: '1px solid rgba(232, 148, 26, 0.15)',
-            background: 'rgba(232, 148, 26, 0.03)',
+            background: 'var(--carbon-base)',
+            border: '1px solid var(--ember-ghost)',
+            borderRadius: 'var(--radius-lg)',
           }}
         >
           <h3
             className="text-sm font-semibold flex items-center gap-2 mb-3"
             style={{ color: '#E8941A' }}
           >
-            <Lightbulb size={16} />
+            <Lightbulb size={15} />
             小贴士
           </h3>
-          <ul className="space-y-2 text-sm" style={{ color: 'var(--silver-mist)' }}>
+          <ul className="space-y-1.5 text-xs" style={{ color: 'var(--silver-mist)' }}>
             <li className="flex items-start gap-2">
               <span style={{ color: '#E8941A' }}>·</span>
               每天坚持记录，哪怕只记录了「做了什么」也是有价值的
@@ -191,7 +191,7 @@ export default function Guide() {
               定期导出 CSV 备份数据，防止浏览器缓存丢失
             </li>
           </ul>
-        </TiltCard>
+        </div>
       </RevealSection>
     </div>
   )

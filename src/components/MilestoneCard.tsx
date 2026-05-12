@@ -35,7 +35,7 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
     if (!cardRef.current) return
     try {
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#111318',
+        backgroundColor: '#0F1116',
         scale: 2,
       })
       const link = document.createElement('a')
@@ -51,34 +51,21 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
     <div className="space-y-2">
       <div
         ref={cardRef}
-        className="relative overflow-hidden rounded-2xl p-5 milestone-badge"
+        className="relative overflow-hidden p-5"
         style={{
-          background: `linear-gradient(135deg, ${category.color}12, rgba(17, 19, 24, 0.8))`,
-          border: `1px solid ${category.color}20`,
-          boxShadow: `0 0 30px ${category.color}12, inset 0 1px 0 rgba(255,255,255,0.05)`,
+          background: `linear-gradient(135deg, ${category.color}08, var(--carbon-base))`,
+          border: `1px solid ${category.color}18`,
+          borderRadius: 'var(--radius-lg)',
         }}
       >
-        {/* Decorative glow orbs */}
-        <div
-          className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-20 blur-3xl"
-          style={{ backgroundColor: category.color, transform: 'translate(30%, -30%)', animation: 'breathe 4s ease-in-out infinite' }}
-        />
-        <div
-          className="absolute bottom-0 left-0 w-20 h-20 rounded-full opacity-10 blur-2xl"
-          style={{ backgroundColor: category.color, transform: 'translate(-20%, 20%)' }}
-        />
-
         <div className="relative">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
               <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center"
-                style={{
-                  background: `${category.color}20`,
-                  boxShadow: `0 0 20px ${category.color}15`,
-                }}
+                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                style={{ background: `${category.color}15` }}
               >
-                <Award size={22} style={{ color: category.color }} />
+                <Award size={20} style={{ color: category.color }} />
               </div>
               <div>
                 <div
@@ -88,7 +75,7 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
                   里程碑达成
                 </div>
                 <div
-                  className="text-base font-bold"
+                  className="text-sm font-bold"
                   style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
                 >
                   {category.name}
@@ -96,7 +83,7 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
               </div>
             </div>
             <div
-              className="text-lg font-bold px-3 py-1.5 rounded-xl"
+              className="text-base font-bold px-2.5 py-1 rounded-md"
               style={{
                 fontFamily: "'JetBrains Mono', monospace",
                 color: category.color,
@@ -107,21 +94,21 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--silver-mist)' }}>
-              <Clock size={14} />
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--silver-mist)' }}>
+              <Clock size={12} />
               <span>累计 {totalHours} 小时</span>
             </div>
             {dateRange && (
-              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--silver-mist)' }}>
-                <Calendar size={14} />
+              <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--silver-mist)' }}>
+                <Calendar size={12} />
                 <span>{dateRange}</span>
               </div>
             )}
           </div>
 
           {keyEvents.length > 0 && (
-            <div style={{ borderTop: '1px solid var(--whisper-border)' }} className="pt-3">
+            <div style={{ borderTop: '1px solid var(--whisper-border)' }} className="pt-2.5">
               <div
                 className="text-[10px] uppercase tracking-wider mb-2"
                 style={{ color: 'var(--slate-ghost)', fontFamily: "'Space Grotesk', sans-serif" }}
@@ -130,13 +117,13 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
               </div>
               <div className="space-y-1.5">
                 {keyEvents.map(event => (
-                  <div key={event.id} className="flex items-start gap-2 text-sm">
+                  <div key={event.id} className="flex items-start gap-2 text-xs">
                     <span
                       className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                      style={{ backgroundColor: category.color, boxShadow: `0 0 4px ${category.color}60` }}
+                      style={{ backgroundColor: category.color }}
                     />
-                    <span style={{ color: 'var(--silver-mist)' }}>{event.description}</span>
-                    <span className="text-xs ml-auto shrink-0" style={{ color: 'var(--slate-ghost)' }}>{event.date}</span>
+                    <span className="flex-1" style={{ color: 'var(--silver-mist)' }}>{event.description}</span>
+                    <span className="shrink-0" style={{ color: 'var(--slate-ghost)' }}>{event.date}</span>
                   </div>
                 ))}
               </div>
@@ -144,14 +131,14 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
           )}
 
           <div
-            className="mt-4 pt-3 flex items-center justify-between"
+            className="mt-3 pt-2.5 flex items-center justify-between"
             style={{ borderTop: '1px solid var(--whisper-border)' }}
           >
-            <span className="text-xs" style={{ color: 'var(--slate-ghost)' }}>
+            <span className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
               {new Date(milestone.achievedAt).toLocaleDateString('zh-CN')} 达成
             </span>
             <span
-              className="text-xs font-semibold tracking-wider"
+              className="text-[10px] font-semibold tracking-wider"
               style={{ color: 'var(--slate-ghost)', fontFamily: "'Space Grotesk', sans-serif" }}
             >
               LEVELUP
@@ -162,10 +149,10 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
 
       <button
         onClick={handleDownload}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all duration-200"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-colors duration-150"
         style={{ color: 'var(--silver-mist)' }}
         onMouseEnter={e => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+          e.currentTarget.style.background = 'var(--slate-surface)'
           e.currentTarget.style.color = 'var(--bright-chalk)'
         }}
         onMouseLeave={e => {
@@ -173,7 +160,7 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
           e.currentTarget.style.color = 'var(--silver-mist)'
         }}
       >
-        <Download size={14} />
+        <Download size={13} />
         保存为图片
       </button>
     </div>

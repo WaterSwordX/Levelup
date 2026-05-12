@@ -3,7 +3,6 @@ import type { Category, TimeEntry } from '../types'
 import { saveEntries, getCategoryPath } from '../store'
 import CategoryPicker from '../components/CategoryPicker'
 import RevealSection from '../components/RevealSection'
-import TiltCard from '../components/TiltCard'
 import { Plus, Trash2, Clock } from 'lucide-react'
 
 interface Props {
@@ -58,19 +57,19 @@ export default function Record({ categories, entries, setEntries }: Props) {
       <RevealSection>
         <div>
           <h2
-            className="text-2xl font-bold tracking-tight"
+            className="text-xl font-bold tracking-tight"
             style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
           >
             记录事件
           </h2>
-          <p className="text-sm mt-1" style={{ color: 'var(--slate-ghost)' }}>
+          <p className="text-xs mt-1" style={{ color: 'var(--slate-ghost)' }}>
             手动记录你的技能练习时间
           </p>
         </div>
       </RevealSection>
 
-      <RevealSection delay={80}>
-        <TiltCard className="p-5">
+      <RevealSection delay={60}>
+        <div className="p-5" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>选择分类</label>
@@ -113,14 +112,17 @@ export default function Record({ categories, entries, setEntries }: Props) {
               添加记录
             </button>
           </form>
-        </TiltCard>
+        </div>
       </RevealSection>
 
-      <RevealSection delay={150}>
+      <RevealSection delay={120}>
         <div className="space-y-3">
           <h3 className="section-title">历史记录 ({entries.length})</h3>
           {sortedEntries.length === 0 ? (
-            <div className="glass-card p-10 text-center text-sm" style={{ color: 'var(--slate-ghost)' }}>
+            <div
+              className="p-10 text-center text-sm"
+              style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)', color: 'var(--slate-ghost)' }}
+            >
               还没有记录，添加你的第一条吧
             </div>
           ) : (
@@ -130,12 +132,17 @@ export default function Record({ categories, entries, setEntries }: Props) {
                 return (
                   <div
                     key={entry.id}
-                    className="glass-card p-4 flex items-start gap-3 group animate-fade-in-up"
-                    style={{ animationDelay: `${i * 30}ms` }}
+                    className="p-4 flex items-start gap-3 group animate-fade-in-up"
+                    style={{
+                      background: 'var(--carbon-base)',
+                      border: '1px solid var(--whisper-border)',
+                      borderRadius: 'var(--radius-lg)',
+                      animationDelay: `${i * 25}ms`,
+                    }}
                   >
                     <span
-                      className="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0"
-                      style={{ backgroundColor: cat?.color ?? 'var(--slate-ghost)', boxShadow: `0 0 6px ${cat?.color ?? 'var(--slate-ghost)'}60` }}
+                      className="w-2 h-2 rounded-full mt-1.5 shrink-0"
+                      style={{ backgroundColor: cat?.color ?? 'var(--slate-ghost)' }}
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -143,17 +150,17 @@ export default function Record({ categories, entries, setEntries }: Props) {
                           {entry.description || getCategoryPath(entry.categoryId, categories)}
                         </span>
                         <span className="text-xs flex items-center gap-1" style={{ color: 'var(--slate-ghost)' }}>
-                          <Clock size={12} />
+                          <Clock size={11} />
                           <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{formatMinutes(entry.duration)}</span>
                         </span>
                       </div>
-                      <div className="text-xs mt-1" style={{ color: 'var(--slate-ghost)' }}>
+                      <div className="text-[11px] mt-0.5" style={{ color: 'var(--slate-ghost)' }}>
                         {getCategoryPath(entry.categoryId, categories)} · {entry.date}
                       </div>
                     </div>
                     <button
                       onClick={() => handleDelete(entry.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 rounded-lg transition-all duration-200"
+                      className="opacity-0 group-hover:opacity-100 p-2 rounded-md transition-all duration-150"
                       style={{ color: 'var(--slate-ghost)' }}
                       onMouseEnter={e => { e.currentTarget.style.color = 'var(--coral-pulse)'; e.currentTarget.style.background = 'var(--coral-soft)' }}
                       onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)'; e.currentTarget.style.background = 'transparent' }}

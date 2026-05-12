@@ -68,19 +68,28 @@ function gistHeaders(token: string): HeadersInit {
 }
 
 export async function createGist(token: string, data: SyncData): Promise<string> {
-  const resp = await fetch(GIST_API, {
-    method: 'POST',
-    headers: gistHeaders(token),
-    body: JSON.stringify({
-      description: 'Levelup — skill tracker data (auto-sync)',
-      public: false,
-      files: {
-        [GIST_FILENAME]: {
-          content: JSON.stringify(data, null, 2),
+  let resp: Response
+  try {
+    resp = await fetch(GIST_API, {
+      method: 'POST',
+      headers: gistHeaders(token),
+      body: JSON.stringify({
+        description: 'Levelup — skill tracker data (auto-sync)',
+        public: false,
+        files: {
+          [GIST_FILENAME]: {
+            content: JSON.stringify(data, null, 2),
+          },
         },
-      },
-    }),
-  })
+      }),
+    })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('net::')) {
+      throw new Error('网络连接失败，请检查网络后重试')
+    }
+    throw new Error(`请求失败: ${msg}`)
+  }
 
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}))
@@ -92,17 +101,26 @@ export async function createGist(token: string, data: SyncData): Promise<string>
 }
 
 export async function updateGist(token: string, gistId: string, data: SyncData): Promise<void> {
-  const resp = await fetch(`${GIST_API}/${gistId}`, {
-    method: 'PATCH',
-    headers: gistHeaders(token),
-    body: JSON.stringify({
-      files: {
-        [GIST_FILENAME]: {
-          content: JSON.stringify(data, null, 2),
+  let resp: Response
+  try {
+    resp = await fetch(`${GIST_API}/${gistId}`, {
+      method: 'PATCH',
+      headers: gistHeaders(token),
+      body: JSON.stringify({
+        files: {
+          [GIST_FILENAME]: {
+            content: JSON.stringify(data, null, 2),
+          },
         },
-      },
-    }),
-  })
+      }),
+    })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('net::')) {
+      throw new Error('网络连接失败，请检查网络后重试')
+    }
+    throw new Error(`请求失败: ${msg}`)
+  }
 
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}))
@@ -111,13 +129,23 @@ export async function updateGist(token: string, gistId: string, data: SyncData):
 }
 
 export async function readGist(token: string, gistId: string): Promise<SyncData> {
-  const resp = await fetch(`${GIST_API}/${gistId}`, {
-    headers: gistHeaders(token),
-    cache: 'no-store',
-  })
+  let resp: Response
+  try {
+    resp = await fetch(`${GIST_API}/${gistId}`, {
+      headers: gistHeaders(token),
+      cache: 'no-store',
+    })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('net::')) {
+      throw new Error('网络连接失败，请检查网络后重试')
+    }
+    throw new Error(`请求失败: ${msg}`)
+  }
 
   if (!resp.ok) {
-    if (resp.status === 404) throw new Error('Gist 不存在，请检查 Gist ID')
+    if (resp.status === 404) throw new Error('Gist 不存在，请检查 Gist ID 或重新连接')
+    if (resp.status === 401 || resp.status === 403) throw new Error('Token 无效或已过期，请重新连接')
     throw new Error(`读取 Gist 失败: ${resp.status}`)
   }
 
@@ -138,7 +166,11 @@ export async function verifyToken(token: string): Promise<{ valid: boolean; user
     if (!resp.ok) return { valid: false }
     const user = await resp.json()
     return { valid: true, username: user.login }
-  } catch {
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('net::')) {
+      throw new Error('网络连接失败，请检查网络后重试')
+    }
     return { valid: false }
   }
 }
@@ -169,6 +201,10 @@ export async function findExistingGist(token: string): Promise<string | null> {
     console.log('[Sync] Match found:', match ? match.id : 'none')
     return match ? match.id : null
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('net::')) {
+      throw new Error('网络连接失败，请检查网络后重试')
+    }
     console.log('[Sync] findExistingGist error:', e)
     return null
   }
@@ -214,6 +250,10 @@ export async function findBestExistingGist(token: string): Promise<string | null
     console.log('[Sync] Best Gist:', bestId, 'with score:', bestScore)
     return bestId
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('net::')) {
+      throw new Error('网络连接失败，请检查网络后重试')
+    }
     console.log('[Sync] findBestExistingGist error:', e)
     return null
   }
@@ -288,10 +328,19 @@ export function disconnectSync() {
 
 // Clean up duplicate Gists: keep the best one, delete the rest
 export async function cleanupDuplicateGists(token: string): Promise<{ kept: string; deleted: number }> {
-  const resp = await fetch(`${GIST_API}?per_page=100`, {
-    headers: gistHeaders(token),
-    cache: 'no-store',
-  })
+  let resp: Response
+  try {
+    resp = await fetch(`${GIST_API}?per_page=100`, {
+      headers: gistHeaders(token),
+      cache: 'no-store',
+    })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('net::')) {
+      throw new Error('网络连接失败，请检查网络后重试')
+    }
+    throw new Error(`请求失败: ${msg}`)
+  }
   if (!resp.ok) throw new Error(`无法列出 Gists: ${resp.status}`)
 
   const gists = await resp.json()

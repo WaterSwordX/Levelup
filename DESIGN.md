@@ -15,11 +15,13 @@
 
 ### 基础色板（深色主题）
 
-- **Deep Void** (#0A0B0F) — 最深层背景，body底色，营造深邃感
-- **Carbon Base** (#111318) — 主背景面，卡片和容器的基底
-- **Slate Surface** (#1A1D24) — 次级表面，hover状态，输入框背景
-- **Whisper Border** (rgba(255, 255, 255, 0.06)) — 结构性边框，分割线
-- **Ghost Border** (rgba(255, 255, 255, 0.12)) — hover态边框，强调分割
+- **Deep Void** (#08090D) — 最深层背景，body底色，营造深邃感
+- **Carbon Base** (#0F1116) — 主背景面，卡片和容器的基底
+- **Slate Surface** (#161820) — 次级表面，hover状态，输入框背景
+- **Slate Raised** (#1C1F28) — 提升的表面，用于活动状态
+- **Whisper Border** (rgba(255, 255, 255, 0.05)) — 结构性边框，分割线
+- **Ghost Border** (rgba(255, 255, 255, 0.09)) — hover态边框，强调分割
+- **Active Border** (rgba(255, 255, 255, 0.14)) — 活动态边框
 
 ### 文字色阶
 
@@ -120,26 +122,25 @@
 - Hover: 背景 rgba(255, 255, 255, 0.06)
 - 危险操作: hover时文字变 coral-pulse，背景 rgba(232, 107, 107, 0.1)
 
-### Cards (glass-card)
+### Cards (surface-card)
 
 **基础卡片**
-- 背景: rgba(255, 255, 255, 0.03) — 微妙的玻璃质感
-- 边框: 1px solid rgba(255, 255, 255, 0.06)
+- 背景: var(--carbon-base)
+- 边框: 1px solid var(--whisper-border)
 - 圆角: 16px
-- 模糊: backdrop-filter: blur(12px)
-- Hover: 背景 rgba(255, 255, 255, 0.05), 边框 rgba(255, 255, 255, 0.1)
+- Hover: 边框 var(--ghost-border), 背景 var(--slate-surface)
 
-**实心卡片 (glass-card-solid)**
-- 背景: #15171E
-- 边框: 1px solid rgba(255, 255, 255, 0.06)
+**提升卡片 (surface-raised)**
+- 背景: var(--slate-surface)
+- 边框: 1px solid var(--whisper-border)
 - 圆角: 16px
 - 用于需要更高对比度的场景
 
 **数据卡片 (stat-card)**
-- 继承 glass-card
+- 继承 surface-card
 - 内部间距: 16px
-- 图标容器: 36px x 36px, 圆角12px, 背景色为强调色的12%透明度
-- 数字: Space Grotesk 700, 1.25rem
+- 图标容器: 32px x 32px, 圆角8px, 背景色为强调色的15%透明度
+- 数字: JetBrains Mono 600, 1.25rem
 - 标签: DM Sans 400, 0.75rem, slate-ghost
 
 ### Inputs (input-field)
@@ -155,10 +156,10 @@
 
 ### Progress Bar
 
-- 轨道: height 6px, 背景 rgba(255, 255, 255, 0.06), 圆角 100px
-- 填充: height 100%, 渐变背景（分类色）, 圆角 100px
+- 轨道: height 4px, 背景 rgba(255, 255, 255, 0.04), 圆角 100px
+- 填充: height 100%, 纯色背景（分类色）, 圆角 100px
 - 动画: transition width 0.6s cubic-bezier(0.22, 1, 0.36, 1)
-- 光晕: box-shadow: 0 0 8px [分类色]40
+- 无光晕效果
 
 ### Navigation
 
@@ -258,15 +259,12 @@ xl:  24px  — 页面区块间距
 ### Spring Physics
 
 ```css
-/* 标准弹性过渡 */
-transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-
 /* 平滑过渡 */
-transition: all 0.2s ease-out;
+transition: all 0.15s ease;
 
 /* 进入动画 */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 ```
@@ -274,33 +272,33 @@ transition: all 0.2s ease-out;
 ### 微交互
 
 **卡片 Hover**
-- 背景色变亮: rgba(255, 255, 255, 0.03) → rgba(255, 255, 255, 0.05)
-- 边框变亮: rgba(255, 255, 255, 0.06) → rgba(255, 255, 255, 0.1)
-- 过渡: 0.3s ease
+- 边框变亮: var(--whisper-border) → var(--ghost-border)
+- 背景色变化: var(--carbon-base) → var(--slate-surface)
+- 过渡: 0.15s ease
 
 **按钮交互**
-- Hover: translateY(-1px), 阴影增强
-- Active: translateY(0), 阴影减弱
-- 过渡: 0.2s ease
+- Hover: 背景色变化，无 translateY
+- Active: 背景色变深
+- 过渡: 0.15s ease
 
 **导航项**
-- Hover: 背景色 rgba(255, 255, 255, 0.04)
-- Active: 背景色 ember-soft, 文字变为 ember-glow
-- 过渡: 0.2s ease
+- Hover: 背景色 var(--slate-surface)
+- Active: 背景色 var(--ember-soft), 文字变为 ember-glow
+- 过渡: 0.15s ease
 
 ### 入场动画
 
 **列表项级联**
 ```css
 .stagger-children > :nth-child(1) { animation-delay: 0ms; }
-.stagger-children > :nth-child(2) { animation-delay: 60ms; }
-.stagger-children > :nth-child(3) { animation-delay: 120ms; }
+.stagger-children > :nth-child(2) { animation-delay: 50ms; }
+.stagger-children > :nth-child(3) { animation-delay: 100ms; }
 /* ... 最多8项 */
 ```
 
 **页面切换**
-- fadeInUp: 0.5s ease-out
-- 延迟: 0ms - 200ms 根据元素层级
+- fadeInUp: 0.4s cubic-bezier(0.16, 1, 0.3, 1)
+- 延迟: 0ms - 150ms 根据元素层级
 
 ### 进度条动画
 
@@ -354,13 +352,17 @@ transition: all 0.2s ease-out;
 
 ## 8. Special Considerations
 
-### Glass Morphism 使用指南
+### 设计原则
 
-当前项目已使用 glass-morphism 效果，这是允许的，但需遵循：
-- 仅用于卡片和容器背景
-- 模糊度: 12px (标准), 20px (强调)
-- 必须配合半透明边框使用
-- 避免在小元素上使用（会造成性能问题）
+**移除 Glass Morphism**
+- 不再使用 backdrop-filter: blur()
+- 使用实心背景色 (var(--carbon-base)) 替代半透明背景
+- 保持简洁的边框和阴影系统
+
+**卡片设计**
+- 使用 surface-card 或 surface-raised 类
+- 避免过度装饰，保持内容焦点
+- 使用微妙的 hover 状态变化
 
 ### 数据可视化
 

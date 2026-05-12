@@ -4,7 +4,6 @@ import { saveEntries, getCategoryPath } from '../store'
 import CategoryPicker from '../components/CategoryPicker'
 import Timer from '../components/Timer'
 import RevealSection from '../components/RevealSection'
-import TiltCard from '../components/TiltCard'
 import { Check, Flame } from 'lucide-react'
 
 interface Props {
@@ -57,36 +56,37 @@ export default function Focus({ categories, entries, setEntries }: Props) {
       <RevealSection>
         <div>
           <h2
-            className="text-2xl font-bold tracking-tight"
+            className="text-xl font-bold tracking-tight"
             style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
           >
             专注计时
           </h2>
-          <p className="text-sm mt-1" style={{ color: 'var(--slate-ghost)' }}>
+          <p className="text-xs mt-1" style={{ color: 'var(--slate-ghost)' }}>
             沉浸在练习中，让时间为你积累
           </p>
         </div>
       </RevealSection>
 
-      <RevealSection delay={60}>
+      <RevealSection delay={50}>
         <div>
           <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>选择技能分类</label>
           <CategoryPicker categories={categories} entries={entries} selectedId={categoryId} onSelect={setCategoryId} />
         </div>
       </RevealSection>
 
-      <RevealSection delay={120}>
-        <TiltCard className="p-8 md:p-12">
+      <RevealSection delay={100}>
+        <div className="p-8 md:p-12" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
           <Timer onFinish={handleTimerFinish} disabled={!categoryId} />
-        </TiltCard>
+        </div>
       </RevealSection>
 
       {showForm && (
         <div
-          className="glass-card p-5 space-y-4 animate-fade-in-up"
+          className="p-5 space-y-4 animate-fade-in-up"
           style={{
-            border: '1px solid rgba(232, 148, 26, 0.2)',
-            boxShadow: '0 0 30px var(--ember-ghost)',
+            background: 'var(--carbon-base)',
+            border: '1px solid var(--ember-ghost)',
+            borderRadius: 'var(--radius-lg)',
           }}
         >
           <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--ember-glow)' }}>
@@ -123,22 +123,22 @@ export default function Focus({ categories, entries, setEntries }: Props) {
       )}
 
       {todayEntries.length > 0 && (
-        <RevealSection delay={100}>
+        <RevealSection delay={80}>
           <div className="space-y-3">
             <h3 className="section-title flex items-center gap-2">
-              <Flame size={14} style={{ color: '#E86B6B' }} />
+              <Flame size={13} style={{ color: '#E86B6B' }} />
               <span>今日专注</span>
               <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>共 {todayTotal} 分钟</span>
             </h3>
-            <div className="glass-card-solid overflow-hidden">
+            <div style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
               <div className="divide-y" style={{ borderColor: 'var(--whisper-border)' }}>
                 {todayEntries.map(entry => {
                   const cat = categories.find(c => c.id === entry.categoryId)
                   return (
-                    <div key={entry.id} className="px-4 py-3.5 flex items-center gap-3">
+                    <div key={entry.id} className="px-4 py-3 flex items-center gap-3">
                       <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: cat?.color ?? 'var(--slate-ghost)', boxShadow: `0 0 6px ${cat?.color ?? 'var(--slate-ghost)'}60` }}
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: cat?.color ?? 'var(--slate-ghost)' }}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm truncate" style={{ color: 'var(--bright-chalk)' }}>
@@ -161,7 +161,10 @@ export default function Focus({ categories, entries, setEntries }: Props) {
       )}
 
       {!categoryId && categories.length === 0 && (
-        <div className="glass-card p-10 text-center text-sm" style={{ color: 'var(--slate-ghost)' }}>
+        <div
+          className="p-10 text-center text-sm"
+          style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)', color: 'var(--slate-ghost)' }}
+        >
           请先在「分类」页面添加技能分类
         </div>
       )}

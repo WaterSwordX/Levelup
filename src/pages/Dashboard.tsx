@@ -2,9 +2,7 @@ import type { Category, TimeEntry, Goal, Milestone } from '../types'
 import { getTopCategories, getCategoryTotalTime, getCategoryPath, getGoalForCategory } from '../store'
 import { Clock, TrendingUp, Calendar, Target, Award, Rocket, Flame, BarChart3, Zap, ChevronRight } from 'lucide-react'
 import MilestoneCard from '../components/MilestoneCard'
-import TiltCard from '../components/TiltCard'
 import RevealSection from '../components/RevealSection'
-import { useRef, useCallback } from 'react'
 
 interface Props {
   categories: Category[]
@@ -23,54 +21,33 @@ function formatMinutes(min: number): string {
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 
 function StatCard({ item, index }: { item: { label: string; value: number; icon: React.ElementType; color: string }; index: number }) {
-  const cardRef = useRef<HTMLDivElement>(null)
-
-  const handleMove = useCallback((e: React.PointerEvent) => {
-    const card = cardRef.current
-    if (!card) return
-    const rect = card.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const rotateY = ((x / rect.width) - 0.5) * 8
-    const rotateX = ((0.5 - y / rect.height)) * 8
-    card.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`
-    card.style.setProperty('--mx', `${x}px`)
-    card.style.setProperty('--my', `${y}px`)
-  }, [])
-
-  const handleLeave = useCallback(() => {
-    const card = cardRef.current
-    if (!card) return
-    card.style.transform = ''
-  }, [])
-
   return (
     <div
-      ref={cardRef}
-      className="glass-card p-4 animate-fade-in-up stat-card group"
+      className="stat-card p-4 animate-fade-in-up"
       style={{
         '--accent-color': item.color,
-        transformStyle: 'preserve-3d',
-        transition: 'transform 0.26s ease, border-color 0.26s ease, box-shadow 0.26s ease',
-        animationDelay: `${index * 60}ms`,
+        background: 'var(--carbon-base)',
+        border: '1px solid var(--whisper-border)',
+        borderRadius: 'var(--radius-lg)',
+        animationDelay: `${index * 50}ms`,
       } as React.CSSProperties}
-      onPointerMove={handleMove}
-      onPointerLeave={handleLeave}
     >
-      <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-all duration-300 group-hover:scale-110"
-        style={{ background: `${item.color}12` }}
-      >
-        <item.icon size={20} style={{ color: item.color }} />
+      <div className="flex items-center gap-2.5 mb-3">
+        <div
+          className="w-8 h-8 rounded-md flex items-center justify-center"
+          style={{ background: `${item.color}15` }}
+        >
+          <item.icon size={16} style={{ color: item.color }} />
+        </div>
+        <span className="text-xs font-medium" style={{ color: 'var(--slate-ghost)' }}>
+          {item.label}
+        </span>
       </div>
       <div
         className="text-xl font-bold"
         style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--bright-chalk)' }}
       >
         {formatMinutes(item.value)}
-      </div>
-      <div className="text-xs mt-1" style={{ color: 'var(--slate-ghost)' }}>
-        {item.label}
       </div>
     </div>
   )
@@ -164,29 +141,29 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
   ]
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
       <RevealSection>
         <div className="flex items-start justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-1.5">
               <h2
-                className="text-2xl font-bold tracking-tight"
+                className="text-xl font-bold tracking-tight"
                 style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
               >
                 看板
               </h2>
               {streak > 0 && (
                 <div
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium"
                   style={{ background: 'var(--ember-soft)', color: 'var(--ember-glow)' }}
                 >
-                  <Flame size={14} />
+                  <Flame size={13} />
                   <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{streak}</span> 天连续
                 </div>
               )}
             </div>
-            <p className="text-sm" style={{ color: 'var(--slate-ghost)' }}>
+            <p className="text-xs" style={{ color: 'var(--slate-ghost)' }}>
               {fmtDate(now)} 周{WEEKDAYS[now.getDay()]} · {weekRange}
             </p>
           </div>
@@ -201,11 +178,12 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       </div>
 
       {/* Today's insights row */}
-      <RevealSection delay={100}>
+      <RevealSection delay={80}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <TiltCard className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <BarChart3 size={14} style={{ color: '#4ECDC4' }} />
+          {/* Yesterday comparison */}
+          <div className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+            <div className="flex items-center gap-2 mb-2.5">
+              <BarChart3 size={13} style={{ color: '#4ECDC4' }} />
               <span className="text-xs font-medium" style={{ color: 'var(--slate-ghost)' }}>昨日对比</span>
             </div>
             <div className="flex items-baseline gap-2">
@@ -217,7 +195,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               </span>
               {todayMinutes > 0 && yesterdayMinutes > 0 && (
                 <span
-                  className="text-xs font-semibold"
+                  className="text-xs font-medium"
                   style={{ color: todayDiff >= 0 ? '#4ECDC4' : '#E86B6B' }}
                 >
                   {todayDiff >= 0 ? '+' : ''}{formatMinutes(Math.abs(todayDiff))}
@@ -227,11 +205,12 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
             <p className="text-[11px] mt-1" style={{ color: 'var(--slate-ghost)' }}>
               昨日 {formatMinutes(yesterdayMinutes)}
             </p>
-          </TiltCard>
+          </div>
 
-          <TiltCard className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Zap size={14} style={{ color: '#A78BFA' }} />
+          {/* Weekly average */}
+          <div className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+            <div className="flex items-center gap-2 mb-2.5">
+              <Zap size={13} style={{ color: '#A78BFA' }} />
               <span className="text-xs font-medium" style={{ color: 'var(--slate-ghost)' }}>本周日均</span>
             </div>
             <div
@@ -243,19 +222,20 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
             <p className="text-[11px] mt-1" style={{ color: 'var(--slate-ghost)' }}>
               已记录 {uniqueWeekDays} 天
             </p>
-          </TiltCard>
+          </div>
 
-          <TiltCard className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Target size={14} style={{ color: '#E8941A' }} />
+          {/* Today breakdown */}
+          <div className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+            <div className="flex items-center gap-2 mb-2.5">
+              <Target size={13} style={{ color: '#E8941A' }} />
               <span className="text-xs font-medium" style={{ color: 'var(--slate-ghost)' }}>今日练习</span>
             </div>
             {todayCategoryBreakdown.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {todayCategoryBreakdown.slice(0, 3).map(({ cat, minutes }) => (
                   <div key={cat.id} className="flex items-center gap-2">
                     <span
-                      className="w-2 h-2 rounded-full shrink-0"
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
                       style={{ backgroundColor: cat.color }}
                     />
                     <span className="text-xs flex-1 truncate" style={{ color: 'var(--silver-mist)' }}>
@@ -273,19 +253,19 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
             ) : (
               <p className="text-xs" style={{ color: 'var(--slate-ghost)' }}>暂无记录</p>
             )}
-          </TiltCard>
+          </div>
         </div>
       </RevealSection>
 
       {/* Milestones */}
       {recentMilestones.length > 0 && (
-        <RevealSection delay={200}>
-          <div className="space-y-4">
+        <RevealSection delay={150}>
+          <div className="space-y-3">
             <h3 className="section-title flex items-center gap-2">
-              <Award size={14} style={{ color: '#A78BFA' }} />
+              <Award size={13} style={{ color: '#A78BFA' }} />
               最近达成的里程碑
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {recentMilestones.map(ms => {
                 const cat = categories.find(c => c.id === ms.categoryId)
                 if (!cat) return null
@@ -307,10 +287,10 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
 
       {/* Goals */}
       {categoriesWithGoals.length > 0 && (
-        <RevealSection delay={150}>
-          <div className="space-y-4">
+        <RevealSection delay={120}>
+          <div className="space-y-3">
             <h3 className="section-title flex items-center gap-2">
-              <Target size={14} style={{ color: '#4ECDC4' }} />
+              <Target size={13} style={{ color: '#4ECDC4' }} />
               目标进度
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -320,27 +300,27 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                 const targetH = Math.floor(goal.targetMinutes / 60)
                 const targetLabel = targetH >= 1 ? `${targetH}小时` : `${goal.targetMinutes}分钟`
                 return (
-                  <TiltCard key={cat.id} className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2.5">
+                  <div key={cat.id} className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="flex items-center gap-2">
                         <span
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: cat.color, boxShadow: `0 0 8px ${cat.color}60` }}
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: cat.color }}
                         />
                         <span className="text-sm font-medium" style={{ color: 'var(--bright-chalk)' }}>
                           {cat.name}
                         </span>
                       </div>
-                      <span className="text-xs" style={{ color: 'var(--slate-ghost)' }}>
+                      <span className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
                         目标 {targetLabel}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs" style={{ color: 'var(--silver-mist)' }}>
                         {formatMinutes(total)} / {formatMinutes(goal.targetMinutes)}
                       </span>
                       <span
-                        className="text-xs font-semibold"
+                        className="text-xs font-medium"
                         style={{ fontFamily: "'JetBrains Mono', monospace", color: cat.color }}
                       >
                         {percent.toFixed(1)}%
@@ -351,8 +331,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         className="progress-fill"
                         style={{
                           width: `${percent}%`,
-                          background: `linear-gradient(90deg, ${cat.color}, ${cat.color}cc)`,
-                          boxShadow: `0 0 12px ${cat.color}40`,
+                          background: cat.color,
                         }}
                       />
                     </div>
@@ -361,7 +340,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         还差 {formatMinutes(remaining)} 达成目标
                       </p>
                     )}
-                  </TiltCard>
+                  </div>
                 )
               })}
             </div>
@@ -371,10 +350,10 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
 
       {/* All skills overview */}
       {topCategories.length > 0 && (
-        <RevealSection delay={100}>
-          <div className="space-y-4">
+        <RevealSection delay={80}>
+          <div className="space-y-3">
             <h3 className="section-title flex items-center gap-2">
-              <ChevronRight size={14} style={{ color: 'var(--slate-ghost)' }} />
+              <ChevronRight size={13} style={{ color: 'var(--slate-ghost)' }} />
               技能总览
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -389,12 +368,12 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                   : (total / maxTime) * 100
                 const childCount = categories.filter(c => c.parentId === cat.id).length
                 return (
-                  <TiltCard key={cat.id} className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2.5">
+                  <div key={cat.id} className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="flex items-center gap-2">
                         <span
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: cat.color, boxShadow: `0 0 8px ${cat.color}60` }}
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: cat.color }}
                         />
                         <span className="text-sm font-medium" style={{ color: 'var(--bright-chalk)' }}>
                           {cat.name}
@@ -406,7 +385,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         )}
                       </div>
                       <span
-                        className="text-sm font-bold"
+                        className="text-sm font-medium"
                         style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--silver-mist)' }}
                       >
                         {formatMinutes(total)}
@@ -417,8 +396,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         className="progress-fill"
                         style={{
                           width: `${Math.min(percent, 100)}%`,
-                          background: `linear-gradient(90deg, ${cat.color}, ${cat.color}cc)`,
-                          boxShadow: `0 0 8px ${cat.color}30`,
+                          background: cat.color,
                         }}
                       />
                     </div>
@@ -432,7 +410,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         </span>
                       </div>
                     )}
-                  </TiltCard>
+                  </div>
                 )
               })}
             </div>
@@ -442,10 +420,10 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
 
       {/* Recent entries */}
       {recentEntries.length > 0 && (
-        <RevealSection delay={100}>
-          <div className="space-y-4">
+        <RevealSection delay={80}>
+          <div className="space-y-3">
             <h3 className="section-title">最近记录</h3>
-            <div className="glass-card-solid overflow-hidden">
+            <div style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
               <div className="divide-y" style={{ borderColor: 'var(--whisper-border)' }}>
                 {recentEntries.map((entry, i) => {
                   const cat = categories.find(c => c.id === entry.categoryId)
@@ -460,18 +438,18 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                   return (
                     <div
                       key={entry.id}
-                      className="px-4 py-3.5 flex items-center gap-3 transition-colors duration-200 hover:bg-[rgba(255,255,255,0.02)] animate-fade-in"
-                      style={{ animationDelay: `${i * 40}ms` }}
+                      className="px-4 py-3 flex items-center gap-3 transition-colors duration-150 hover:bg-[var(--slate-surface)] animate-fade-in"
+                      style={{ animationDelay: `${i * 30}ms` }}
                     >
                       <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: cat?.color ?? 'var(--slate-ghost)', boxShadow: `0 0 6px ${cat?.color ?? 'var(--slate-ghost)'}60` }}
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: cat?.color ?? 'var(--slate-ghost)' }}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm truncate" style={{ color: 'var(--bright-chalk)' }}>
                           {entry.description || getCategoryPath(entry.categoryId, categories)}
                         </div>
-                        <div className="text-xs mt-0.5" style={{ color: 'var(--slate-ghost)' }}>{dateLabel}</div>
+                        <div className="text-[11px] mt-0.5" style={{ color: 'var(--slate-ghost)' }}>{dateLabel}</div>
                       </div>
                       <span
                         className="text-xs font-medium shrink-0"
@@ -490,18 +468,15 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
 
       {/* Empty state */}
       {categories.length === 0 && entries.length === 0 && (
-        <div className="glass-card p-16 text-center animate-fade-in-up">
+        <div className="p-12 text-center animate-fade-in-up" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
           <div
-            className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
-            style={{
-              background: 'var(--ember-soft)',
-              boxShadow: '0 0 40px var(--ember-ghost)',
-            }}
+            className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-5"
+            style={{ background: 'var(--ember-soft)' }}
           >
-            <Rocket size={36} style={{ color: 'var(--ember-glow)' }} />
+            <Rocket size={28} style={{ color: 'var(--ember-glow)' }} />
           </div>
           <h3
-            className="text-xl font-bold mb-3"
+            className="text-lg font-bold mb-2"
             style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}
           >
             欢迎使用 Levelup
