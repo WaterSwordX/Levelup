@@ -1,5 +1,6 @@
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 import type { Category, TimeEntry } from '../types'
-import { useState } from 'react'
 import CategoryTree from './CategoryTree'
 import { getCategoryPath } from '../store'
 import { ChevronDown, X } from 'lucide-react'
@@ -13,12 +14,46 @@ interface Props {
 
 export default function CategoryPicker({ categories, entries, selectedId, onSelect }: Props) {
   const [open, setOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 })
 
   const selectedPath = selectedId ? getCategoryPath(selectedId, categories) : ''
 
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const handleClick = (e: MouseEvent) => {
+      if (
+        triggerRef.current && !triggerRef.current.contains(e.target as Node) &&
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
+    const handleScroll = () => {
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect()
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    window.addEventListener('scroll', handleScroll, true)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      window.removeEventListener('scroll', handleScroll, true)
+    }
+  }, [open])
+
   return (
-    <div className="relative">
+    <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-4 py-3 text-sm text-left rounded-xl transition-all duration-200"
@@ -55,10 +90,16 @@ export default function CategoryPicker({ categories, entries, selectedId, onSele
         </div>
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
-          className="absolute z-50 top-full left-0 right-0 mt-2 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2 animate-fade-in"
+          ref={dropdownRef}
+          className="rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2 animate-fade-in"
           style={{
+            position: 'fixed',
+            top: pos.top,
+            left: pos.left,
+            width: pos.width,
+            zIndex: 9999,
             background: 'rgba(21, 23, 30, 0.95)',
             border: '1px solid var(--whisper-border)',
             backdropFilter: 'blur(20px)',
@@ -76,8 +117,9 @@ export default function CategoryPicker({ categories, entries, selectedId, onSele
               selectedId={selectedId ?? undefined}
             />
           )}
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   )
 }
