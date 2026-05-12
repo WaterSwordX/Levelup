@@ -69,9 +69,9 @@ export default function Record({ categories, entries, setEntries }: Props) {
       </RevealSection>
 
       <RevealSection delay={60}>
-        <div className="p-5" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+        <div className="p-5" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)', position: 'relative', zIndex: 20 }}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+            <div style={{ position: 'relative', zIndex: 30 }}>
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>选择分类</label>
               <CategoryPicker categories={categories} entries={entries} selectedId={categoryId} onSelect={setCategoryId} />
             </div>

@@ -71,7 +71,7 @@ export default function Focus({ categories, entries, setEntries }: Props) {
       </RevealSection>
 
       <RevealSection delay={50}>
-        <div>
+        <div style={{ position: 'relative', zIndex: 30 }}>
           <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>选择技能分类</label>
           <CategoryPicker categories={categories} entries={entries} selectedId={categoryId} onSelect={setCategoryId} />
         </div>
