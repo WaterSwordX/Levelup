@@ -134,7 +134,10 @@ export default function Stats({ categories, entries }: Props) {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up relative">
+      <div className="art-line" style={{ top: '20px', left: '-50px', animationDelay: '-2s' }} />
+      <div className="art-dot" style={{ top: '50px', right: '100px', animationDelay: '-4s' }} />
+
       <RevealSection>
         <div className="flex items-center justify-between">
           <div>

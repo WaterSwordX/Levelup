@@ -2,32 +2,34 @@
 
 /* ===== Design Tokens: Midnight Observatory ===== */
 :root {
-  /* Base Colors — tinted toward warm amber */
-  --deep-void: #08090D;
-  --carbon-base: #0F1116;
-  --slate-surface: #161820;
-  --slate-raised: #1C1F28;
-  --whisper-border: rgba(255, 255, 255, 0.05);
-  --ghost-border: rgba(255, 255, 255, 0.09);
-  --active-border: rgba(255, 255, 255, 0.14);
+  /* Base Colors — 深邃而温暖 */
+  --deep-void: #050509;
+  --carbon-base: #0d0f14;
+  --slate-surface: #14161d;
+  --slate-raised: #1a1d26;
+  --whisper-border: rgba(255, 255, 255, 0.08);
+  --ghost-border: rgba(255, 255, 255, 0.14);
+  --active-border: rgba(255, 255, 255, 0.22);
 
   /* Text Hierarchy */
-  --bright-chalk: #E8E9EC;
-  --silver-mist: #8B8F9A;
-  --slate-ghost: #4A4E59;
+  --bright-chalk: #f0ece4;
+  --silver-mist: #9a9588;
+  --slate-ghost: #5a564e;
 
   /* Primary Accent — Ember */
-  --ember-glow: #E8941A;
-  --ember-soft: rgba(232, 148, 26, 0.10);
-  --ember-ghost: rgba(232, 148, 26, 0.20);
+  --ember-glow: #e8941a;
+  --ember-bright: #f2d78e;
+  --ember-soft: rgba(232, 148, 26, 0.12);
+  --ember-ghost: rgba(232, 148, 26, 0.25);
 
   /* Semantic Colors */
-  --coral-pulse: #E86B6B;
-  --coral-soft: rgba(232, 107, 107, 0.10);
-  --teal-flow: #4ECDC4;
-  --teal-soft: rgba(78, 205, 196, 0.10);
-  --iris-whisper: #A78BFA;
-  --iris-soft: rgba(167, 139, 250, 0.10);
+  --coral-pulse: #e07b7b;
+  --coral-soft: rgba(224, 123, 123, 0.12);
+  --teal-flow: #6ee7f2;
+  --teal-soft: rgba(110, 231, 242, 0.12);
+  --iris-whisper: #a78bfa;
+  --iris-soft: rgba(167, 139, 250, 0.12);
+  --gold-soft: rgba(242, 215, 142, 0.08);
 
   /* Spacing Scale */
   --space-xs: 4px;
@@ -39,15 +41,20 @@
   --space-3xl: 48px;
 
   /* Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  color-scheme: dark;
 }
 
 /* ===== Base ===== */
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -61,17 +68,19 @@ body {
   line-height: 1.6;
 }
 
-/* Subtle dot grid — very faint */
+/* 网格背景 */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.4), transparent 80%);
-  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.4), transparent 80%);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent 70%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent 70%);
 }
 
 #root {
@@ -88,11 +97,11 @@ body::before {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 100px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* ===== Inputs ===== */
@@ -103,18 +112,14 @@ input[type="email"],
 input[type="password"],
 textarea,
 select {
-  background-color: var(--slate-surface);
+  background: rgba(0, 0, 0, 0.3);
   color: var(--bright-chalk);
   border: 1px solid var(--whisper-border);
   border-radius: var(--radius-md);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-input[type="text"]:focus,
-input[type="number"]:focus,
-input[type="date"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus,
+input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--ember-glow);
@@ -137,49 +142,39 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* ===== Surface Cards — no glassmorphism ===== */
+/* ===== Cards ===== */
 .surface-card {
   background: var(--carbon-base);
   border: 1px solid var(--whisper-border);
   border-radius: var(--radius-lg);
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .surface-card:hover {
   border-color: var(--ghost-border);
-  background: var(--slate-surface);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
 
-.surface-raised {
-  background: var(--slate-surface);
-  border: 1px solid var(--whisper-border);
-  border-radius: var(--radius-lg);
-  transition: border-color 0.2s ease;
-}
-
-.surface-raised:hover {
-  border-color: var(--ghost-border);
-}
-
-/* ===== Interactive Card — subtle tilt ===== */
+/* 交互卡片 — 带倾斜效果 */
 .tilt-card {
   background: var(--carbon-base);
   border: 1px solid var(--whisper-border);
   border-radius: var(--radius-lg);
-  transition: transform 0.26s ease, border-color 0.26s ease, box-shadow 0.26s ease;
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+  transform-style: preserve-3d;
 }
 
 .tilt-card:hover {
   border-color: var(--ember-ghost);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--ember-ghost);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 30px var(--ember-ghost);
 }
 
 /* ===== Reveal Animation ===== */
 .reveal-section {
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(20px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal-section.revealed {
@@ -191,7 +186,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -207,7 +202,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateX(-8px);
+    transform: translateX(-10px);
   }
   to {
     opacity: 1;
@@ -215,23 +210,40 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 }
 
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.12; }
+  50% { transform: scale(1.03); opacity: 0.25; }
+}
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(6vw, -4vh, 0) scale(1.12); }
+}
+
+@keyframes floatDot {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(18px) scale(1.15); }
+}
+
+@keyframes lineDrift {
+  0%, 100% { transform: translateX(0) scaleX(0.6); opacity: 0.2; }
+  50% { transform: translateX(40px) scaleX(1); opacity: 0.6; }
+}
+
 @keyframes pulseGlow {
-  0%, 100% { opacity: 0.6; }
+  0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
-@keyframes breathe {
-  0%, 100% { transform: scale(1); opacity: 0.12; }
-  50% { transform: scale(1.02); opacity: 0.22; }
+@keyframes orbDrift {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(3vw, -2vh) scale(1.05); }
+  66% { transform: translate(-2vw, 3vh) scale(0.95); }
+  100% { transform: translate(1vw, -1vh) scale(1.02); }
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-fade-in {
@@ -254,25 +266,39 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* ===== Button Styles ===== */
 .btn-primary {
-  background: var(--ember-glow);
-  color: var(--deep-void);
-  font-weight: 600;
-  border: none;
+  position: relative;
+  background: linear-gradient(135deg, #f3d992, #c99b46);
+  color: #110d08;
+  font-weight: 700;
+  border: 1px solid rgba(255, 235, 169, 0.4);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-  box-shadow: 0 2px 8px var(--ember-ghost);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 8px 24px rgba(217, 177, 95, 0.2);
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(242, 215, 142, 0.3), transparent 50%);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
 }
 
 .btn-primary:hover {
-  box-shadow: 0 4px 16px rgba(232, 148, 26, 0.3);
-  transform: translateY(-1px);
-  background: #F0A030;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(217, 177, 95, 0.3);
+}
+
+.btn-primary:hover::after {
+  opacity: 1;
 }
 
 .btn-primary:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 4px var(--ember-ghost);
+  transform: translateY(0) scale(0.98);
 }
 
 .btn-primary:disabled {
@@ -283,39 +309,35 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .btn-ghost {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--silver-mist);
   border: 1px solid var(--whisper-border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
 }
 
 .btn-ghost:hover {
-  background: var(--slate-surface);
+  background: rgba(255, 255, 255, 0.08);
   border-color: var(--ghost-border);
   color: var(--bright-chalk);
+  transform: translateY(-1px);
 }
 
 .btn-ghost:active {
-  background: var(--slate-raised);
-}
-
-.btn-ghost:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+  transform: translateY(0);
 }
 
 /* ===== Input class ===== */
 .input-field {
   width: 100%;
   padding: 10px 14px;
-  background: var(--slate-surface);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--whisper-border);
   border-radius: var(--radius-md);
   font-size: 14px;
   color: var(--bright-chalk);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .input-field::placeholder {
@@ -340,8 +362,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* ===== Progress Bar ===== */
 .progress-track {
-  height: 4px;
-  background: rgba(255, 255, 255, 0.04);
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 100px;
   overflow: hidden;
 }
@@ -350,11 +372,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   height: 100%;
   border-radius: 100px;
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 12px var(--color, rgba(232, 148, 26, 0.3));
 }
 
 /* ===== Selection highlight ===== */
 ::selection {
-  background: rgba(232, 148, 26, 0.25);
+  background: rgba(232, 148, 26, 0.3);
   color: var(--bright-chalk);
 }
 
@@ -371,13 +394,27 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--accent-color, var(--ember-glow));
+  background: linear-gradient(90deg, transparent, var(--accent-color, var(--ember-glow)), transparent);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
 
 .stat-card:hover::before {
-  opacity: 0.6;
+  opacity: 0.8;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), var(--accent-color, rgba(232, 148, 26, 0.06)), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.stat-card:hover::after {
+  opacity: 1;
 }
 
 /* ===== Navigation Active Indicator ===== */
@@ -395,6 +432,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   height: 5px;
   border-radius: 50%;
   background: var(--ember-glow);
+  box-shadow: 0 0 10px var(--ember-ghost);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -409,12 +447,37 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     box-shadow: 0 0 0 0 var(--ember-ghost);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(232, 148, 26, 0);
+    box-shadow: 0 0 0 10px rgba(232, 148, 26, 0);
   }
 }
 
 .timer-running {
   animation: timerPulse 2s ease-in-out infinite;
+}
+
+/* ===== Decorative Elements ===== */
+.art-line {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  width: min(28vw, 340px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232, 148, 26, 0.5), transparent);
+  opacity: 0.4;
+  animation: lineDrift 7s ease-in-out infinite;
+}
+
+.art-dot {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(232, 148, 26, 0.8);
+  box-shadow: 0 0 28px rgba(232, 148, 26, 0.4);
+  opacity: 0.6;
+  animation: floatDot 6s ease-in-out infinite;
 }
 
 /* ===== Responsive ===== */
@@ -435,5 +498,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .animate-slide-in {
     animation: none;
     opacity: 1;
+  }
+
+  .art-line,
+  .art-dot {
+    display: none;
   }
 }

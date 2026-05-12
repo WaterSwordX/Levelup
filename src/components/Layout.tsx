@@ -1,5 +1,8 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { LayoutDashboard, FolderTree, PenLine, Timer, BarChart3, HelpCircle, Zap, Settings } from 'lucide-react'
+import ParticleCanvas from './ParticleCanvas'
+import CursorGlow from './CursorGlow'
+import AmbientOrbs from './AmbientOrbs'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: '看板' },
@@ -12,12 +15,21 @@ const navItems = [
 export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Background effects */}
+      <ParticleCanvas />
+      <AmbientOrbs />
+      <CursorGlow />
+
       {/* Desktop Sidebar */}
       <nav
         className="hidden md:flex flex-col w-56 shrink-0 p-3 gap-1"
         style={{
-          background: 'var(--carbon-base)',
+          background: 'rgba(13, 15, 20, 0.85)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           borderRight: '1px solid var(--whisper-border)',
+          position: 'relative',
+          zIndex: 10,
         }}
       >
         {/* Logo */}
@@ -26,6 +38,7 @@ export default function Layout() {
             className="w-9 h-9 rounded-lg flex items-center justify-center"
             style={{
               background: 'var(--ember-soft)',
+              boxShadow: '0 0 20px rgba(232, 148, 26, 0.15)',
             }}
           >
             <Zap size={18} style={{ color: 'var(--ember-glow)' }} />
@@ -65,6 +78,7 @@ export default function Layout() {
                     className="w-8 h-8 rounded-md flex items-center justify-center transition-colors duration-150"
                     style={{
                       background: isActive ? 'var(--ember-soft)' : 'transparent',
+                      boxShadow: isActive ? '0 0 12px rgba(232, 148, 26, 0.2)' : 'none',
                     }}
                   >
                     <item.icon size={17} />
@@ -112,7 +126,7 @@ export default function Layout() {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 pb-20 md:pb-6 overflow-auto">
+      <main className="flex-1 pb-20 md:pb-6 overflow-auto" style={{ position: 'relative', zIndex: 5 }}>
         <div className="max-w-5xl mx-auto p-4 md:p-6 lg:p-8">
           <Outlet />
         </div>
@@ -122,9 +136,9 @@ export default function Layout() {
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-14 z-50"
         style={{
-          background: 'rgba(15, 17, 22, 0.95)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          background: 'rgba(5, 5, 9, 0.92)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           borderTop: '1px solid var(--whisper-border)',
         }}
       >
@@ -145,6 +159,7 @@ export default function Layout() {
                   className="w-7 h-7 rounded-md flex items-center justify-center transition-colors duration-150"
                   style={{
                     background: isActive ? 'var(--ember-soft)' : 'transparent',
+                    boxShadow: isActive ? '0 0 10px rgba(232, 148, 26, 0.2)' : 'none',
                   }}
                 >
                   <item.icon size={17} />

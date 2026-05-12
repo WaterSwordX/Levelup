@@ -79,23 +79,46 @@ export default function Timer({ onFinish, disabled }: Props) {
     <div className="flex flex-col items-center gap-6 py-4">
       {/* Timer display */}
       <div className="relative">
-        {/* Outer ring — subtle pulse when running */}
+        {/* Outer glow rings */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: running ? 'var(--ember-ghost)' : 'transparent',
-            transform: 'scale(1.3)',
-            transition: 'all 0.4s ease',
-            animation: running ? 'breathe 3s ease-in-out infinite' : 'none',
+            background: running ? 'rgba(232, 148, 26, 0.06)' : 'transparent',
+            transform: 'scale(1.5)',
+            transition: 'all 0.6s ease',
+            animation: running ? 'breathe 4s ease-in-out infinite' : 'none',
             opacity: running ? 1 : 0,
           }}
         />
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: running ? 'rgba(232, 148, 26, 0.04)' : 'transparent',
+            transform: 'scale(1.8)',
+            transition: 'all 0.8s ease',
+            animation: running ? 'breathe 5s ease-in-out infinite' : 'none',
+            opacity: running ? 0.6 : 0,
+          }}
+        />
+        {/* Decorative art dots around timer */}
+        {running && (
+          <>
+            <div className="art-dot" style={{ top: '-8px', left: '50%', animation: 'floatDot 4s ease-in-out infinite' }} />
+            <div className="art-dot" style={{ bottom: '-8px', right: '20%', animation: 'floatDot 5s ease-in-out infinite', animationDelay: '-1.5s' }} />
+            <div className="art-dot" style={{ top: '30%', right: '-12px', animation: 'floatDot 6s ease-in-out infinite', animationDelay: '-3s' }} />
+          </>
+        )}
         {/* Timer circle */}
         <div
           className="w-48 h-48 md:w-56 md:h-56 rounded-full flex items-center justify-center relative"
           style={{
-            background: 'var(--carbon-base)',
-            border: `1.5px solid ${running ? 'var(--ember-glow)' : 'var(--whisper-border)'}`,
+            background: running
+              ? 'radial-gradient(circle, rgba(232, 148, 26, 0.08) 0%, var(--carbon-base) 70%)'
+              : 'var(--carbon-base)',
+            border: `1.5px solid ${running ? 'rgba(232, 148, 26, 0.5)' : 'var(--whisper-border)'}`,
+            boxShadow: running
+              ? '0 0 40px rgba(232, 148, 26, 0.15), inset 0 0 30px rgba(232, 148, 26, 0.05)'
+              : 'none',
             transition: 'all 0.4s ease',
           }}
         >
@@ -103,8 +126,9 @@ export default function Timer({ onFinish, disabled }: Props) {
             className="text-4xl md:text-5xl font-light tracking-[0.12em]"
             style={{
               fontFamily: "'JetBrains Mono', monospace",
-              color: running ? 'var(--ember-glow)' : 'var(--bright-chalk)',
-              transition: 'color 0.3s ease',
+              color: running ? 'var(--ember-bright)' : 'var(--bright-chalk)',
+              textShadow: running ? '0 0 20px rgba(232, 148, 26, 0.4)' : 'none',
+              transition: 'color 0.3s ease, text-shadow 0.3s ease',
             }}
           >
             {format(elapsed)}

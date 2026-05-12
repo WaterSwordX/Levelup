@@ -52,7 +52,10 @@ export default function Focus({ categories, entries, setEntries }: Props) {
   const todayTotal = todayEntries.reduce((s, e) => s + e.duration, 0)
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up relative">
+      <div className="art-line" style={{ top: '40px', right: '-20px' }} />
+      <div className="art-dot" style={{ top: '80px', left: '60px', animationDelay: '-1s' }} />
+
       <RevealSection>
         <div>
           <h2

@@ -3,6 +3,7 @@ import { getTopCategories, getCategoryTotalTime, getCategoryPath, getGoalForCate
 import { Clock, TrendingUp, Calendar, Target, Award, Rocket, Flame, BarChart3, Zap, ChevronRight } from 'lucide-react'
 import MilestoneCard from '../components/MilestoneCard'
 import RevealSection from '../components/RevealSection'
+import TiltCard from '../components/TiltCard'
 
 interface Props {
   categories: Category[]
@@ -22,20 +23,18 @@ const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 
 function StatCard({ item, index }: { item: { label: string; value: number; icon: React.ElementType; color: string }; index: number }) {
   return (
-    <div
+    <TiltCard
       className="stat-card p-4 animate-fade-in-up"
       style={{
         '--accent-color': item.color,
-        background: 'var(--carbon-base)',
-        border: '1px solid var(--whisper-border)',
-        borderRadius: 'var(--radius-lg)',
         animationDelay: `${index * 50}ms`,
+        padding: '16px',
       } as React.CSSProperties}
     >
       <div className="flex items-center gap-2.5 mb-3">
         <div
           className="w-8 h-8 rounded-md flex items-center justify-center"
-          style={{ background: `${item.color}15` }}
+          style={{ background: `${item.color}15`, boxShadow: `0 0 12px ${item.color}20` }}
         >
           <item.icon size={16} style={{ color: item.color }} />
         </div>
@@ -49,7 +48,7 @@ function StatCard({ item, index }: { item: { label: string; value: number; icon:
       >
         {formatMinutes(item.value)}
       </div>
-    </div>
+    </TiltCard>
   )
 }
 
@@ -141,7 +140,13 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
   ]
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up relative">
+      {/* Decorative art elements */}
+      <div className="art-line" style={{ top: '12px', right: '-40px' }} />
+      <div className="art-line" style={{ top: '280px', left: '-60px', animationDelay: '-3s' }} />
+      <div className="art-dot" style={{ top: '60px', right: '80px' }} />
+      <div className="art-dot" style={{ top: '320px', left: '40px', animationDelay: '-2s' }} />
+
       {/* Header */}
       <RevealSection>
         <div className="flex items-start justify-between">
