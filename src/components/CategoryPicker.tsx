@@ -58,7 +58,7 @@ export default function CategoryPicker({ categories, entries, selectedId, onSele
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-4 py-3 text-sm text-left rounded-xl transition-all duration-200"
         style={{
-          background: 'rgba(0, 0, 0, 0.25)',
+          background: 'var(--inset-bg-strong)',
           border: `1px solid ${open ? '#E8941A' : 'var(--whisper-border)'}`,
           boxShadow: open ? '0 0 0 3px var(--ember-soft)' : 'none',
           backdropFilter: 'blur(8px)',
@@ -73,7 +73,7 @@ export default function CategoryPicker({ categories, entries, selectedId, onSele
               className="p-1 rounded-lg transition-colors duration-200"
               style={{ color: 'var(--slate-ghost)' }}
               onClick={e => { e.stopPropagation(); onSelect(null) }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--hover-bg)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
               <X size={14} />
@@ -100,7 +100,7 @@ export default function CategoryPicker({ categories, entries, selectedId, onSele
             left: pos.left,
             width: pos.width,
             zIndex: 9999,
-            background: 'rgba(21, 23, 30, 0.95)',
+            background: 'var(--carbon-base)',
             border: '1px solid var(--whisper-border)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',

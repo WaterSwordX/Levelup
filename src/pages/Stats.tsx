@@ -77,7 +77,7 @@ export default function Stats({ categories, entries }: Props) {
   const totalWeeks = heatmapData.length > 0 ? heatmapData[heatmapData.length - 1].week + 1 : 0
 
   const getHeatColor = (minutes: number) => {
-    if (minutes === 0) return 'rgba(255, 255, 255, 0.03)'
+    if (minutes === 0) return 'var(--inset-bg)'
     const ratio = minutes / maxHeatmap
     if (ratio < 0.25) return 'rgba(232, 148, 26, 0.12)'
     if (ratio < 0.5) return 'rgba(232, 148, 26, 0.25)'
@@ -242,7 +242,7 @@ export default function Stats({ categories, entries }: Props) {
                             key={dayIdx}
                             className="w-3 h-3 rounded-sm transition-colors duration-150"
                             style={{
-                              backgroundColor: cell ? getHeatColor(cell.minutes) : 'rgba(255,255,255,0.02)',
+                              backgroundColor: cell ? getHeatColor(cell.minutes) : 'var(--hover-bg)',
                             }}
                             title={cell ? `${cell.date}: ${cell.minutes}分钟` : ''}
                           />
@@ -253,7 +253,7 @@ export default function Stats({ categories, entries }: Props) {
                 </div>
                 <div className="flex items-center gap-1.5 mt-3 text-[10px]" style={{ color: 'var(--slate-ghost)' }}>
                   <span>少</span>
-                  {['rgba(255,255,255,0.03)', 'rgba(232,148,26,0.12)', 'rgba(232,148,26,0.25)', 'rgba(232,148,26,0.45)', 'rgba(232,148,26,0.7)'].map(c => (
+                  {['var(--inset-bg)', 'rgba(232,148,26,0.12)', 'rgba(232,148,26,0.25)', 'rgba(232,148,26,0.45)', 'rgba(232,148,26,0.7)'].map(c => (
                     <span key={c} className="w-3 h-3 rounded-sm" style={{ backgroundColor: c }} />
                   ))}
                   <span>多</span>

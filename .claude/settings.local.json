@@ -20,7 +20,19 @@
       "Bash(npx tsc *)",
       "Skill(taste-design)",
       "Skill(impeccable)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(git config *)",
+      "Bash(netsh winhttp *)",
+      "Bash(git -c http.sslVerify=false push origin main)",
+      "Bash(git reset *)",
+      "Bash(npx vite *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(curl *)",
+      "Bash(findstr \"LISTENING\")",
+      "Bash(findstr -E \"7890 7891 1080 10808 10809 33210 1087 8080 8118 9090\")",
+      "Bash(npx vercel *)",
+      "Bash(npx netlify *)",
+      "WebSearch"
     ]
   }
 }

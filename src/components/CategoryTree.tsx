@@ -73,7 +73,7 @@ function CategoryNode({ category, categories, entries, onSelect, selectedId, lev
         }}
         onClick={() => onSelect?.(category)}
         onMouseEnter={e => {
-          if (!isSelected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
+          if (!isSelected) e.currentTarget.style.background = 'var(--hover-bg)'
         }}
         onMouseLeave={e => {
           if (!isSelected) e.currentTarget.style.background = 'transparent'
@@ -84,7 +84,7 @@ function CategoryNode({ category, categories, entries, onSelect, selectedId, lev
             className="p-0.5 rounded-md transition-colors duration-200"
             style={{ color: 'var(--slate-ghost)' }}
             onClick={e => { e.stopPropagation(); setExpanded(!expanded) }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--hover-bg-strong)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
           >
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}

@@ -25,7 +25,7 @@ export default function Layout() {
       <nav
         className="hidden md:flex flex-col w-56 shrink-0 p-3 gap-1 sticky top-0 self-start h-screen"
         style={{
-          background: 'rgba(13, 15, 20, 0.85)',
+          background: 'var(--sidebar-bg)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           borderRight: '1px solid var(--whisper-border)',
@@ -137,7 +137,7 @@ export default function Layout() {
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-14 z-50"
         style={{
-          background: 'rgba(5, 5, 9, 0.92)',
+          background: 'var(--mobile-nav-bg)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderTop: '1px solid var(--whisper-border)',

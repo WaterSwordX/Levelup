@@ -55,7 +55,7 @@ export default function ColorPicker({ value, onChange, size = 'md' }: Props) {
             onClick={() => setShowCustom(true)}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150"
             style={{
-              background: !isPreset ? `${value}18` : 'rgba(255,255,255,0.04)',
+              background: !isPreset ? `${value}18` : 'var(--hover-bg)',
               color: !isPreset ? value : 'var(--slate-ghost)',
               border: `1px solid ${!isPreset ? `${value}30` : 'var(--whisper-border)'}`,
             }}

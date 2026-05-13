@@ -102,13 +102,13 @@ function CountUpCard({
         </p>
 
         {category.note && (
-          <div className="flex items-start gap-2 mb-3 px-3 py-2 rounded-lg" style={{ background: 'rgba(0,0,0,0.15)' }}>
+          <div className="flex items-start gap-2 mb-3 px-3 py-2 rounded-lg" style={{ background: 'var(--inset-bg)' }}>
             <StickyNote size={11} className="shrink-0 mt-0.5" style={{ color: 'var(--slate-ghost)' }} />
             <p className="text-xs" style={{ color: 'var(--silver-mist)' }}>{category.note}</p>
           </div>
         )}
 
-        <div className="grid grid-cols-4 gap-0 rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.2)' }}>
+        <div className="grid grid-cols-4 gap-0 rounded-xl overflow-hidden" style={{ background: 'var(--inset-bg)' }}>
           {[
             { val: bd.years, label: '年' },
             { val: bd.months, label: '月' },
@@ -192,13 +192,13 @@ function CountDownCard({
         </p>
 
         {category.note && (
-          <div className="flex items-start gap-2 mb-3 px-3 py-2 rounded-lg" style={{ background: 'rgba(0,0,0,0.15)' }}>
+          <div className="flex items-start gap-2 mb-3 px-3 py-2 rounded-lg" style={{ background: 'var(--inset-bg)' }}>
             <StickyNote size={11} className="shrink-0 mt-0.5" style={{ color: 'var(--slate-ghost)' }} />
             <p className="text-xs" style={{ color: 'var(--silver-mist)' }}>{category.note}</p>
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-0 rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.2)' }}>
+        <div className="grid grid-cols-3 gap-0 rounded-xl overflow-hidden" style={{ background: 'var(--inset-bg)' }}>
           {[
             { val: bd.months + bd.years * 12, label: '月' },
             { val: bd.weeks, label: '周' },
@@ -463,11 +463,11 @@ export default function Days({ categories, entries, setCategories }: Props) {
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>类型</label>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => setMode('countup')} className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
-                style={{ background: mode === 'countup' ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)', border: mode === 'countup' ? '1px solid rgba(232,148,26,0.2)' : '1px solid var(--whisper-border)', color: mode === 'countup' ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
+                style={{ background: mode === 'countup' ? 'var(--ember-soft)' : 'var(--hover-bg)', border: mode === 'countup' ? '1px solid rgba(232,148,26,0.2)' : '1px solid var(--whisper-border)', color: mode === 'countup' ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
                 <ArrowUpCircle size={16} style={{ color: mode === 'countup' ? '#E8941A' : 'var(--slate-ghost)' }} /> 正数日（已过）
               </button>
               <button onClick={() => setMode('countdown')} className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
-                style={{ background: mode === 'countdown' ? 'var(--teal-soft)' : 'rgba(255,255,255,0.02)', border: mode === 'countdown' ? '1px solid rgba(78,205,196,0.2)' : '1px solid var(--whisper-border)', color: mode === 'countdown' ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
+                style={{ background: mode === 'countdown' ? 'var(--teal-soft)' : 'var(--hover-bg)', border: mode === 'countdown' ? '1px solid rgba(78,205,196,0.2)' : '1px solid var(--whisper-border)', color: mode === 'countdown' ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
                 <ArrowDownCircle size={16} style={{ color: mode === 'countdown' ? '#4ECDC4' : 'var(--slate-ghost)' }} /> 倒数日（未来）
               </button>
             </div>
@@ -479,11 +479,11 @@ export default function Days({ categories, entries, setCategories }: Props) {
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>分类</label>
               <div className="flex gap-2 mb-3">
                 <button onClick={() => { setStandaloneMode(false); setStandaloneName('') }} className="flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200"
-                  style={{ background: !standaloneMode ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)', border: !standaloneMode ? '1px solid rgba(232,148,26,0.15)' : '1px solid var(--whisper-border)', color: !standaloneMode ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
+                  style={{ background: !standaloneMode ? 'var(--ember-soft)' : 'var(--hover-bg)', border: !standaloneMode ? '1px solid rgba(232,148,26,0.15)' : '1px solid var(--whisper-border)', color: !standaloneMode ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
                   选择已有分类
                 </button>
                 <button onClick={() => { setStandaloneMode(true); setSelectedCatId('') }} className="flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200"
-                  style={{ background: standaloneMode ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)', border: standaloneMode ? '1px solid rgba(232,148,26,0.15)' : '1px solid var(--whisper-border)', color: standaloneMode ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
+                  style={{ background: standaloneMode ? 'var(--ember-soft)' : 'var(--hover-bg)', border: standaloneMode ? '1px solid rgba(232,148,26,0.15)' : '1px solid var(--whisper-border)', color: standaloneMode ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
                   直接添加
                 </button>
               </div>
@@ -492,7 +492,7 @@ export default function Days({ categories, entries, setCategories }: Props) {
                   <input type="text" value={standaloneName} onChange={e => setStandaloneName(e.target.value)} placeholder="输入名称，如：学吉他、备考雅思..." className="input-field" autoFocus />
                 </div>
               ) : (
-                <div className="max-h-52 overflow-y-auto rounded-xl p-2" style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--whisper-border)' }}>
+                <div className="max-h-52 overflow-y-auto rounded-xl p-2" style={{ background: 'var(--inset-bg)', border: '1px solid var(--whisper-border)' }}>
                   {availableCategories.length === 0 ? (
                     <p className="text-xs py-3 text-center" style={{ color: 'var(--slate-ghost)' }}>所有分类都已添加计时日</p>
                   ) : (

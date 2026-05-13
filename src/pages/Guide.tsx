@@ -100,7 +100,7 @@ const sections = [
   {
     icon: Clock,
     title: '数据说明',
-    color: '#4A4E59',
+    color: 'var(--slate-ghost)',
     steps: [
       '所有数据保存在浏览器本地（localStorage），不会上传到任何服务器',
       '清除浏览器缓存会导致数据丢失，建议定期使用「导出CSV」备份',

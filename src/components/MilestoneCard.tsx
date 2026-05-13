@@ -35,7 +35,7 @@ export default function MilestoneCard({ milestone, category, entries, allCategor
     if (!cardRef.current) return
     try {
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#0F1116',
+        backgroundColor: 'var(--carbon-base)',
         scale: 2,
       })
       const link = document.createElement('a')

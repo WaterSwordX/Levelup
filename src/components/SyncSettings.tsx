@@ -283,7 +283,7 @@ export default function SyncSettings({ currentData }: Props) {
         <div className="flex items-center gap-3 mb-4">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: connected ? 'var(--teal-soft)' : 'rgba(255, 255, 255, 0.05)' }}
+            style={{ background: connected ? 'var(--teal-soft)' : 'var(--hover-bg)' }}
           >
             {connected ? <Cloud size={20} style={{ color: '#4ECDC4' }} /> : <CloudOff size={20} style={{ color: 'var(--slate-ghost)' }} />}
           </div>
@@ -330,7 +330,7 @@ export default function SyncSettings({ currentData }: Props) {
 
             <div
               className="text-xs p-3 rounded-xl"
-              style={{ background: 'rgba(255, 255, 255, 0.02)', color: 'var(--slate-ghost)' }}
+              style={{ background: 'var(--hover-bg)', color: 'var(--slate-ghost)' }}
             >
               <p className="mb-1">如何获取 Token：</p>
               <ol className="list-decimal pl-4 space-y-0.5">
@@ -410,7 +410,7 @@ export default function SyncSettings({ currentData }: Props) {
               }}
               disabled={syncing}
               className="text-[11px] w-full py-1.5 rounded-lg transition-all duration-200"
-              style={{ color: 'var(--slate-ghost)', border: '1px solid rgba(255,255,255,0.08)' }}
+              style={{ color: 'var(--slate-ghost)', border: '1px solid var(--whisper-border)' }}
             >
               清理重复 Gist（合并为一个）
             </button>
@@ -450,14 +450,14 @@ export default function SyncSettings({ currentData }: Props) {
             <button
               onClick={handleDebug}
               className="text-xs px-3 py-1 rounded-lg mb-2"
-              style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--silver-mist)' }}
+              style={{ background: 'var(--hover-bg)', color: 'var(--silver-mist)' }}
             >
               刷新调试数据
             </button>
             <pre
               className="text-[11px] p-3 rounded-xl overflow-auto max-h-64"
               style={{
-                background: 'rgba(0,0,0,0.25)',
+                background: 'var(--inset-bg-strong)',
                 color: '#4ECDC4',
                 fontFamily: "'JetBrains Mono', monospace",
                 whiteSpace: 'pre-wrap',
