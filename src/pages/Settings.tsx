@@ -3,7 +3,7 @@ import SyncSettings from '../components/SyncSettings'
 import type { Category, TimeEntry, Goal, Milestone } from '../types'
 import type { ThemeMode } from '../store'
 import { getTheme, saveTheme } from '../store'
-import { Settings as SettingsIcon, Cloud, Smartphone, Sun, Moon, TreePine, Check } from 'lucide-react'
+import { Settings as SettingsIcon, Cloud, Smartphone, Sun, Moon, Lamp, Check } from 'lucide-react'
 import RevealSection from '../components/RevealSection'
 
 interface Props {
@@ -110,33 +110,33 @@ export default function Settings({ currentData }: Props) {
               </div>
             </button>
 
-            {/* Forest Theme Card */}
+            {/* Warm Theme Card */}
             <button
-              onClick={() => handleSetTheme('forest')}
+              onClick={() => handleSetTheme('warm')}
               className="relative p-4 rounded-xl text-left transition-all duration-200"
               style={{
-                background: theme === 'forest' ? 'var(--ember-soft)' : 'var(--carbon-base)',
-                border: theme === 'forest' ? '1px solid rgba(124,184,122,0.25)' : '1px solid var(--whisper-border)',
+                background: theme === 'warm' ? 'var(--ember-soft)' : 'var(--carbon-base)',
+                border: theme === 'warm' ? '1px solid rgba(212,160,80,0.25)' : '1px solid var(--whisper-border)',
               }}
             >
-              {theme === 'forest' && (
+              {theme === 'warm' && (
                 <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--ember-glow)' }}>
-                  <Check size={12} style={{ color: '#0a1210' }} />
+                  <Check size={12} style={{ color: '#141110' }} />
                 </div>
               )}
               <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#111c18', border: '1px solid rgba(120,180,140,0.15)' }}>
-                  <TreePine size={14} style={{ color: '#7cb87a' }} />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#1c1916', border: '1px solid rgba(200,170,120,0.15)' }}>
+                  <Lamp size={14} style={{ color: '#d4a050' }} />
                 </div>
-                <span className="text-sm font-semibold" style={{ color: 'var(--bright-chalk)', fontFamily: "'Space Grotesk', sans-serif" }}>森林</span>
+                <span className="text-sm font-semibold" style={{ color: 'var(--bright-chalk)', fontFamily: "'Space Grotesk', sans-serif" }}>暖光</span>
               </div>
-              <div className="rounded-lg overflow-hidden" style={{ background: '#0a1210', border: '1px solid rgba(120,180,140,0.1)' }}>
-                <div className="px-2.5 py-1.5" style={{ background: '#111c18', borderBottom: '1px solid rgba(120,180,140,0.08)' }}>
-                  <div className="w-8 h-1.5 rounded-full" style={{ background: '#7cb87a' }} />
+              <div className="rounded-lg overflow-hidden" style={{ background: '#141110', border: '1px solid rgba(200,170,120,0.08)' }}>
+                <div className="px-2.5 py-1.5" style={{ background: '#1c1916', borderBottom: '1px solid rgba(200,170,120,0.06)' }}>
+                  <div className="w-8 h-1.5 rounded-full" style={{ background: '#d4a050' }} />
                 </div>
                 <div className="p-2 space-y-1">
-                  <div className="h-1.5 rounded-full w-3/4" style={{ background: 'rgba(120,180,140,0.2)' }} />
-                  <div className="h-1.5 rounded-full w-1/2" style={{ background: 'rgba(120,180,140,0.1)' }} />
+                  <div className="h-1.5 rounded-full w-3/4" style={{ background: 'rgba(200,170,120,0.2)' }} />
+                  <div className="h-1.5 rounded-full w-1/2" style={{ background: 'rgba(200,170,120,0.1)' }} />
                 </div>
               </div>
             </button>
