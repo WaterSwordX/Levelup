@@ -258,6 +258,126 @@ function CategoryGroup({
   )
 }
 
+// ─── 树形分类选择器 ──────────────────────────────────────────
+
+function CategoryTreePicker({
+  categories, availableCategories, selectedId, onSelect, parentId, level,
+}: {
+  categories: Category[]
+  availableCategories: Category[]
+  selectedId: string
+  onSelect: (id: string) => void
+  parentId: string | null
+  level: number
+}) {
+  // 当前层级的子分类（只显示 available 中的，或者有 available 子孙的父级）
+  const children = categories.filter(c => c.parentId === parentId)
+  const visible = children.filter(c => {
+    if (availableCategories.some(a => a.id === c.id)) return true
+    // 检查是否有可用的子孙
+    const hasAvailableDescendant = (catId: string): boolean => {
+      return categories.some(cc => cc.parentId === catId && (
+        availableCategories.some(a => a.id === cc.id) || hasAvailableDescendant(cc.id)
+      ))
+    }
+    return hasAvailableDescendant(c.id)
+  })
+
+  if (visible.length === 0) return null
+
+  return (
+    <div className={level > 0 ? 'ml-4 pl-2.5' : ''} style={level > 0 ? { borderLeft: '1px solid var(--whisper-border)' } : undefined}>
+      {visible.map(cat => {
+        const isAvailable = availableCategories.some(a => a.id === cat.id)
+        const isSelected = selectedId === cat.id
+        const hasAvailableChildren = categories.some(cc => cc.parentId === cat.id && availableCategories.some(a => a.id === cc.id))
+
+        return (
+          <CategoryTreePickerNode
+            key={cat.id}
+            category={cat}
+            categories={categories}
+            availableCategories={availableCategories}
+            selectedId={selectedId}
+            onSelect={onSelect}
+            isAvailable={isAvailable}
+            isSelected={isSelected}
+            hasAvailableChildren={hasAvailableChildren}
+            level={level}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+function CategoryTreePickerNode({
+  category, categories, availableCategories, selectedId, onSelect,
+  isAvailable, isSelected, hasAvailableChildren, level,
+}: {
+  category: Category
+  categories: Category[]
+  availableCategories: Category[]
+  selectedId: string
+  onSelect: (id: string) => void
+  isAvailable: boolean
+  isSelected: boolean
+  hasAvailableChildren: boolean
+  level: number
+}) {
+  const [expanded, setExpanded] = useState(level < 1)
+
+  return (
+    <div>
+      <div
+        className="flex items-center gap-2 py-2 px-2 rounded-lg transition-all duration-150"
+        style={{
+          background: isSelected ? 'var(--ember-soft)' : 'transparent',
+          cursor: isAvailable ? 'pointer' : 'default',
+          opacity: isAvailable ? 1 : 0.6,
+        }}
+        onClick={() => { if (isAvailable) onSelect(category.id) }}
+      >
+        {/* 展开/折叠按钮 */}
+        {hasAvailableChildren ? (
+          <button
+            className="p-0.5 rounded transition-colors duration-150 shrink-0"
+            style={{ color: 'var(--slate-ghost)' }}
+            onClick={e => { e.stopPropagation(); setExpanded(!expanded) }}
+          >
+            {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          </button>
+        ) : (
+          <span className="w-4 shrink-0" />
+        )}
+
+        {/* 色点 */}
+        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: category.color }} />
+
+        {/* 名称 */}
+        <span className="text-sm flex-1 truncate" style={{ color: isSelected ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
+          {category.name}
+        </span>
+
+        {/* 选中标记 */}
+        {isSelected && <Check size={13} style={{ color: '#E8941A' }} className="shrink-0" />}
+      </div>
+
+      {/* 子分类 */}
+      {expanded && hasAvailableChildren && (
+        <CategoryTreePicker
+          categories={categories}
+          availableCategories={availableCategories}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          parentId={category.id}
+          level={level + 1}
+        />
+      )}
+    </div>
+  )
+}
+
 // ─── 主页面 ──────────────────────────────────────────────────
 
 export default function Days({ categories, entries, setCategories }: Props) {
@@ -453,28 +573,22 @@ export default function Days({ categories, entries, setCategories }: Props) {
             </div>
           </div>
 
-          {/* 选择分类 */}
+          {/* 选择分类 - 树形结构 */}
           {!editId && (
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>选择分类</label>
-              <div className="space-y-1 max-h-40 overflow-y-auto">
-                {availableCategories.map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSelectedCatId(cat.id)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all duration-150"
-                    style={{
-                      background: selectedCatId === cat.id ? 'var(--ember-soft)' : 'transparent',
-                      border: selectedCatId === cat.id ? '1px solid rgba(232,148,26,0.15)' : '1px solid transparent',
-                    }}
-                  >
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                    <span className="text-sm" style={{ color: selectedCatId === cat.id ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>{cat.name}</span>
-                    {selectedCatId === cat.id && <Check size={13} style={{ color: '#E8941A' }} className="ml-auto" />}
-                  </button>
-                ))}
-                {availableCategories.length === 0 && (
-                  <p className="text-xs py-2" style={{ color: 'var(--slate-ghost)' }}>所有分类都已添加计时日</p>
+              <div className="max-h-52 overflow-y-auto rounded-xl p-2" style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--whisper-border)' }}>
+                {availableCategories.length === 0 ? (
+                  <p className="text-xs py-3 text-center" style={{ color: 'var(--slate-ghost)' }}>所有分类都已添加计时日</p>
+                ) : (
+                  <CategoryTreePicker
+                    categories={categories}
+                    availableCategories={availableCategories}
+                    selectedId={selectedCatId}
+                    onSelect={setSelectedCatId}
+                    parentId={null}
+                    level={0}
+                  />
                 )}
               </div>
             </div>
