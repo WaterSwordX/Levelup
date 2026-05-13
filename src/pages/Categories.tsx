@@ -238,7 +238,7 @@ export default function Categories({ categories, entries, setCategories, goals, 
             </div>
           ) : (
             <CategoryTree
-              categories={categories}
+              categories={categories.filter(c => !c.standalone)}
               entries={entries}
               showTime={true}
               renderActions={(cat) => {

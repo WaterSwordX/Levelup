@@ -366,7 +366,7 @@ export default function Days({ categories, entries, setCategories }: Props) {
         const newCat: Category = {
           id: crypto.randomUUID(), name: standaloneName.trim(), parentId: null,
           color: standaloneColor, createdAt: new Date().toISOString(),
-          showCountdown: true, countdownMode: mode,
+          showCountdown: true, countdownMode: mode, standalone: true,
           startDate: isCd ? undefined : dateValue, targetDate: isCd ? dateValue : undefined,
           note: noteValue || undefined,
         }

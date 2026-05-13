@@ -10,6 +10,7 @@ export interface Category {
   countdownMode?: 'countup' | 'countdown' // 正数 or 倒数
   pinned?: boolean // 置顶
   note?: string // 备注
+  standalone?: boolean // 计时日独立条目，不显示在分类列表
 }
 
 export interface TimeEntry {

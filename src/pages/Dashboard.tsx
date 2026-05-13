@@ -53,7 +53,7 @@ function StatCard({ item, index }: { item: { label: string; value: number; icon:
 }
 
 export default function Dashboard({ categories, entries, goals, milestones }: Props) {
-  const topCategories = getTopCategories(categories).filter(c => !c.showCountdown)
+  const topCategories = getTopCategories(categories).filter(c => !c.showCountdown && !c.standalone)
   const now = new Date()
   const today = now.toISOString().split('T')[0]
   const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1
