@@ -277,6 +277,18 @@ function TreePickerNode({ cat, categories, availableCategories, selectedId, onSe
   )
 }
 
+// ─── 今日指示器 ──────────────────────────────────────────
+
+function TodayPill({ count, label, color }: { count: number; label: string; color: string }) {
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: `${color}12`, border: `1px solid ${color}20` }}>
+      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: color }} />
+      <span className="text-xs font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace", color }}>{count}</span>
+      <span className="text-[11px]" style={{ color: 'var(--silver-mist)' }}>{label}</span>
+    </div>
+  )
+}
+
 // ─── 主页面 ──────────────────────────────────────────────────
 
 export default function Days({ categories, entries, setCategories }: Props) {
@@ -292,6 +304,7 @@ export default function Days({ categories, entries, setCategories }: Props) {
   const [sortMode, setSortMode] = useState<SortMode>('days')
 
   const now = new Date()
+  const todayStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`
 
   const activeCategories = categories
     .filter(c => c.showCountdown && (c.startDate || c.targetDate))
@@ -380,9 +393,11 @@ export default function Days({ categories, entries, setCategories }: Props) {
   }
 
   const hasAny = activeCategories.length > 0
+  const hasBoth = countupItems.length > 0 && countdownItems.length > 0
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-5 animate-fade-in-up">
+      {/* ─── 顶部标题栏 ─── */}
       <RevealSection>
         <div className="flex items-center justify-between">
           <div>
@@ -407,7 +422,34 @@ export default function Days({ categories, entries, setCategories }: Props) {
         </div>
       </RevealSection>
 
-      {/* 表单 */}
+      {/* ─── 今日中心轴 ─── */}
+      {hasAny && (
+        <RevealSection delay={20}>
+          <div
+            className="relative flex items-center justify-center py-3 rounded-2xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(90deg, rgba(232,148,26,0.04), rgba(78,205,196,0.04))',
+              border: '1px solid var(--whisper-border)',
+            }}
+          >
+            {/* 左侧渐变线 */}
+            <div className="absolute left-4 right-1/2 top-1/2 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(232,148,26,0.3))' }} />
+            {/* 右侧渐变线 */}
+            <div className="absolute left-1/2 right-4 top-1/2 h-px" style={{ background: 'linear-gradient(90deg, rgba(78,205,196,0.3), transparent)' }} />
+
+            <div className="relative flex items-center gap-4 px-5">
+              {countupItems.length > 0 && <TodayPill count={countupItems.length} label="已出发" color="#E8941A" />}
+              <div className="flex flex-col items-center px-3">
+                <span className="text-[10px] font-medium" style={{ color: 'var(--slate-ghost)' }}>TODAY</span>
+                <span className="text-sm font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--bright-chalk)' }}>{todayStr}</span>
+              </div>
+              {countdownItems.length > 0 && <TodayPill count={countdownItems.length} label="在途中" color="#4ECDC4" />}
+            </div>
+          </div>
+        </RevealSection>
+      )}
+
+      {/* ─── 表单 ─── */}
       {showForm && (
         <div className="p-5 space-y-4 animate-fade-in-up" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
           <div className="flex items-center justify-between">
@@ -460,7 +502,7 @@ export default function Days({ categories, entries, setCategories }: Props) {
             </div>
           )}
 
-          {/* 颜色选择器 - 直接添加 或 编辑独立项时显示 */}
+          {/* 颜色选择器 */}
           {(standaloneMode || (editId && !categories.find(c => c.id === editId)?.parentId)) && (
             <div>
               <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}><Palette size={14} /> 颜色</label>
@@ -492,45 +534,56 @@ export default function Days({ categories, entries, setCategories }: Props) {
         </div>
       )}
 
-      {/* ─── 正数日区域 ─── */}
-      {countupItems.length > 0 && (
-        <RevealSection delay={40}>
-          <div className="space-y-3">
-            <h3 className="section-title flex items-center gap-2">
-              <ArrowUpCircle size={14} style={{ color: '#E8941A' }} />
-              正数日 · 已经过去
-              <span className="text-[11px] font-normal ml-auto" style={{ color: 'var(--slate-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>{countupItems.length}</span>
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {countupItems.map(({ category, totalDays }) => (
-                <CountUpCard key={category.id} category={category} totalDays={totalDays} now={now} entries={entries} allCategories={categories}
-                  onEdit={() => startEdit(category)} onRemove={() => handleRemove(category.id)} onTogglePin={() => handleTogglePin(category)} />
-              ))}
-            </div>
-          </div>
-        </RevealSection>
+      {/* ─── 双栏时间轴布局 ─── */}
+      {hasAny && (
+        <div className={`grid gap-4 ${hasBoth ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+          {/* ─── 左栏：正数日 ─── */}
+          {countupItems.length > 0 && (
+            <RevealSection delay={40}>
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-2.5 text-sm font-semibold" style={{ color: 'var(--bright-chalk)', fontFamily: "'Space Grotesk', sans-serif" }}>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: 'rgba(232,148,26,0.1)', border: '1px solid rgba(232,148,26,0.15)' }}>
+                    <ArrowUpCircle size={13} style={{ color: '#E8941A' }} />
+                    <span style={{ color: '#E8941A', fontSize: '11px' }}>正数日</span>
+                  </div>
+                  <span style={{ color: 'var(--silver-mist)', fontSize: '12px' }}>已经过去</span>
+                  <span className="ml-auto text-[11px] font-normal" style={{ color: 'var(--slate-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>{countupItems.length}</span>
+                </h3>
+                <div className="space-y-3">
+                  {countupItems.map(({ category, totalDays }) => (
+                    <CountUpCard key={category.id} category={category} totalDays={totalDays} now={now} entries={entries} allCategories={categories}
+                      onEdit={() => startEdit(category)} onRemove={() => handleRemove(category.id)} onTogglePin={() => handleTogglePin(category)} />
+                  ))}
+                </div>
+              </div>
+            </RevealSection>
+          )}
+
+          {/* ─── 右栏：倒数日 ─── */}
+          {countdownItems.length > 0 && (
+            <RevealSection delay={60}>
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-2.5 text-sm font-semibold" style={{ color: 'var(--bright-chalk)', fontFamily: "'Space Grotesk', sans-serif" }}>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: 'rgba(78,205,196,0.1)', border: '1px solid rgba(78,205,196,0.15)' }}>
+                    <ArrowDownCircle size={13} style={{ color: '#4ECDC4' }} />
+                    <span style={{ color: '#4ECDC4', fontSize: '11px' }}>倒数日</span>
+                  </div>
+                  <span style={{ color: 'var(--silver-mist)', fontSize: '12px' }}>即将到来</span>
+                  <span className="ml-auto text-[11px] font-normal" style={{ color: 'var(--slate-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>{countdownItems.length}</span>
+                </h3>
+                <div className="space-y-3">
+                  {countdownItems.map(({ category, totalDays }) => (
+                    <CountDownCard key={category.id} category={category} totalDays={totalDays} now={now} entries={entries} allCategories={categories}
+                      onEdit={() => startEdit(category)} onRemove={() => handleRemove(category.id)} onTogglePin={() => handleTogglePin(category)} />
+                  ))}
+                </div>
+              </div>
+            </RevealSection>
+          )}
+        </div>
       )}
 
-      {/* ─── 倒数日区域 ─── */}
-      {countdownItems.length > 0 && (
-        <RevealSection delay={60}>
-          <div className="space-y-3">
-            <h3 className="section-title flex items-center gap-2">
-              <ArrowDownCircle size={14} style={{ color: '#4ECDC4' }} />
-              倒数日 · 即将到来
-              <span className="text-[11px] font-normal ml-auto" style={{ color: 'var(--slate-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>{countdownItems.length}</span>
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {countdownItems.map(({ category, totalDays }) => (
-                <CountDownCard key={category.id} category={category} totalDays={totalDays} now={now} entries={entries} allCategories={categories}
-                  onEdit={() => startEdit(category)} onRemove={() => handleRemove(category.id)} onTogglePin={() => handleTogglePin(category)} />
-              ))}
-            </div>
-          </div>
-        </RevealSection>
-      )}
-
-      {/* 空状态 */}
+      {/* ─── 空状态 ─── */}
       {!hasAny && (
         <RevealSection delay={60}>
           <div className="p-12 text-center" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
