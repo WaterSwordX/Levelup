@@ -10,7 +10,7 @@ import Guide from './pages/Guide'
 import Settings from './pages/Settings'
 import Days from './pages/Days'
 import type { Category, TimeEntry, Goal, Milestone } from './types'
-import { loadCategories, loadEntries, loadGoals, loadMilestones, saveMilestones, detectNewMilestones, getCategoryTotalTime } from './store'
+import { loadCategories, loadEntries, loadGoals, loadMilestones, saveMilestones, detectNewMilestones, getCategoryTotalTime, getTheme } from './store'
 import { isSyncConfigured, syncToCloud } from './sync'
 
 export default function App() {
@@ -26,6 +26,8 @@ export default function App() {
     setEntries(loadEntries())
     setGoals(loadGoals())
     setMilestones(loadMilestones())
+    // 应用主题
+    document.documentElement.dataset.theme = getTheme()
     // 延迟标记初始加载完成，避免首次加载触发自动同步
     setTimeout(() => { initialLoadDone.current = true }, 1000)
   }, [])

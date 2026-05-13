@@ -53,6 +53,94 @@
   color-scheme: dark;
 }
 
+/* ===== Light Theme: Morning Paper ===== */
+[data-theme="light"] {
+  /* Base Colors */
+  --deep-void: #f5f5f7;
+  --carbon-base: #ffffff;
+  --slate-surface: #f0f0f2;
+  --slate-raised: #e8e8ec;
+  --whisper-border: rgba(0, 0, 0, 0.08);
+  --ghost-border: rgba(0, 0, 0, 0.14);
+  --active-border: rgba(0, 0, 0, 0.22);
+
+  /* Text Hierarchy */
+  --bright-chalk: #1a1a2e;
+  --silver-mist: #5a5a6e;
+  --slate-ghost: #9a9aaa;
+
+  /* Primary Accent — Ember (deeper for contrast on light) */
+  --ember-glow: #c97b1a;
+  --ember-bright: #9a6510;
+  --ember-soft: rgba(201, 123, 26, 0.1);
+  --ember-ghost: rgba(201, 123, 26, 0.2);
+
+  /* Semantic Colors */
+  --coral-pulse: #d04848;
+  --coral-soft: rgba(208, 72, 72, 0.1);
+  --teal-flow: #0891b2;
+  --teal-soft: rgba(8, 145, 178, 0.1);
+  --iris-whisper: #7c3aed;
+  --iris-soft: rgba(124, 58, 237, 0.1);
+  --gold-soft: rgba(201, 123, 26, 0.06);
+
+  color-scheme: light;
+}
+
+/* Light theme overrides for inputs */
+[data-theme="light"] input[type="text"],
+[data-theme="light"] input[type="number"],
+[data-theme="light"] input[type="date"],
+[data-theme="light"] input[type="email"],
+[data-theme="light"] input[type="password"],
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .input-field {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .btn-ghost {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] body::before {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .progress-track {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] ::selection {
+  background: rgba(201, 123, 26, 0.2);
+}
+
+[data-theme="light"] .surface-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .tilt-card:hover {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 0 30px var(--ember-ghost);
+}
+
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.6;
+}
+
 /* ===== Base ===== */
 * {
   box-sizing: border-box;

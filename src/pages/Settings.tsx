@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import SyncSettings from '../components/SyncSettings'
 import type { Category, TimeEntry, Goal, Milestone } from '../types'
-import { Settings as SettingsIcon, Cloud, Smartphone } from 'lucide-react'
+import type { ThemeMode } from '../store'
+import { getTheme, saveTheme } from '../store'
+import { Settings as SettingsIcon, Cloud, Smartphone, Sun, Moon, Check } from 'lucide-react'
 import RevealSection from '../components/RevealSection'
 
 interface Props {
@@ -13,6 +16,14 @@ interface Props {
 }
 
 export default function Settings({ currentData }: Props) {
+  const [theme, setTheme] = useState<ThemeMode>(getTheme)
+
+  const handleSetTheme = (t: ThemeMode) => {
+    setTheme(t)
+    saveTheme(t)
+    document.documentElement.dataset.theme = t
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       <RevealSection>
@@ -26,6 +37,81 @@ export default function Settings({ currentData }: Props) {
           <p className="text-xs mt-1" style={{ color: 'var(--slate-ghost)' }}>
             管理同步和应用配置
           </p>
+        </div>
+      </RevealSection>
+
+      {/* Appearance Section */}
+      <RevealSection delay={40}>
+        <div className="space-y-3">
+          <h3 className="section-title flex items-center gap-2">
+            <Sun size={13} style={{ color: '#E8941A' }} />
+            外观主题
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Dark Theme Card */}
+            <button
+              onClick={() => handleSetTheme('dark')}
+              className="relative p-4 rounded-xl text-left transition-all duration-200"
+              style={{
+                background: theme === 'dark' ? 'var(--ember-soft)' : 'var(--carbon-base)',
+                border: theme === 'dark' ? '1px solid rgba(232,148,26,0.25)' : '1px solid var(--whisper-border)',
+              }}
+            >
+              {theme === 'dark' && (
+                <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--ember-glow)' }}>
+                  <Check size={12} style={{ color: '#110d08' }} />
+                </div>
+              )}
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#0d0f14', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <Moon size={14} style={{ color: '#f0ece4' }} />
+                </div>
+                <span className="text-sm font-semibold" style={{ color: 'var(--bright-chalk)', fontFamily: "'Space Grotesk', sans-serif" }}>深色</span>
+              </div>
+              {/* Mini preview */}
+              <div className="rounded-lg overflow-hidden" style={{ background: '#050509', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="px-2.5 py-1.5" style={{ background: '#0d0f14', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="w-8 h-1.5 rounded-full" style={{ background: '#e8941a' }} />
+                </div>
+                <div className="p-2 space-y-1">
+                  <div className="h-1.5 rounded-full w-3/4" style={{ background: 'rgba(255,255,255,0.12)' }} />
+                  <div className="h-1.5 rounded-full w-1/2" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                </div>
+              </div>
+            </button>
+
+            {/* Light Theme Card */}
+            <button
+              onClick={() => handleSetTheme('light')}
+              className="relative p-4 rounded-xl text-left transition-all duration-200"
+              style={{
+                background: theme === 'light' ? 'var(--ember-soft)' : 'var(--carbon-base)',
+                border: theme === 'light' ? '1px solid rgba(232,148,26,0.25)' : '1px solid var(--whisper-border)',
+              }}
+            >
+              {theme === 'light' && (
+                <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--ember-glow)' }}>
+                  <Check size={12} style={{ color: '#110d08' }} />
+                </div>
+              )}
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.1)' }}>
+                  <Sun size={14} style={{ color: '#c97b1a' }} />
+                </div>
+                <span className="text-sm font-semibold" style={{ color: 'var(--bright-chalk)', fontFamily: "'Space Grotesk', sans-serif" }}>浅色</span>
+              </div>
+              {/* Mini preview */}
+              <div className="rounded-lg overflow-hidden" style={{ background: '#f5f5f7', border: '1px solid rgba(0,0,0,0.08)' }}>
+                <div className="px-2.5 py-1.5" style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                  <div className="w-8 h-1.5 rounded-full" style={{ background: '#c97b1a' }} />
+                </div>
+                <div className="p-2 space-y-1">
+                  <div className="h-1.5 rounded-full w-3/4" style={{ background: 'rgba(0,0,0,0.12)' }} />
+                  <div className="h-1.5 rounded-full w-1/2" style={{ background: 'rgba(0,0,0,0.06)' }} />
+                </div>
+              </div>
+            </button>
+          </div>
         </div>
       </RevealSection>
 

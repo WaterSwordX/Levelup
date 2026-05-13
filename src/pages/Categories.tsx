@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Category, TimeEntry, Goal } from '../types'
 import { saveCategories, saveGoals, getGoalForCategory, getCategoryTotalTime, PRESET_COLORS } from '../store'
+import ColorPicker from '../components/ColorPicker'
 import CategoryTree from '../components/CategoryTree'
 import RevealSection from '../components/RevealSection'
 import { Plus, Pencil, Trash2, FolderPlus, Target, X, Check } from 'lucide-react'
@@ -211,20 +212,9 @@ export default function Categories({ categories, entries, setCategories, goals, 
                 autoFocus
                 onKeyDown={e => e.key === 'Enter' && (editId ? handleEdit() : handleAdd())}
               />
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs" style={{ color: 'var(--slate-ghost)' }}>颜色</span>
-                {PRESET_COLORS.map(c => (
-                  <button
-                    key={c}
-                    onClick={() => setColor(c)}
-                    className="w-6 h-6 rounded-full transition-all duration-150"
-                    style={{
-                      backgroundColor: c,
-                      boxShadow: color === c ? `0 0 0 2px var(--deep-void), 0 0 0 3px ${c}` : 'none',
-                      transform: color === c ? 'scale(1.1)' : 'scale(1)',
-                    }}
-                  />
-                ))}
+              <div>
+                <span className="text-xs block mb-2" style={{ color: 'var(--slate-ghost)' }}>颜色</span>
+                <ColorPicker value={color} onChange={setColor} size="sm" />
               </div>
               <button
                 onClick={editId ? handleEdit : handleAdd}

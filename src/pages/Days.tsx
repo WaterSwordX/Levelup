@@ -2,10 +2,11 @@ import { useState } from 'react'
 import type { Category, TimeEntry } from '../types'
 import { saveCategories, getCategoryTotalTime, PRESET_COLORS } from '../store'
 import RevealSection from '../components/RevealSection'
+import ColorPicker from '../components/ColorPicker'
 import {
   Plus, X, Check, Calendar, Timer, ChevronDown, ChevronRight,
   Pin, PinOff, Pencil, Trash2, ArrowUpCircle, ArrowDownCircle,
-  StickyNote, Palette,
+  StickyNote,
 } from 'lucide-react'
 
 interface Props {
@@ -505,13 +506,8 @@ export default function Days({ categories, entries, setCategories }: Props) {
           {/* 颜色选择器 */}
           {(standaloneMode || (editId && !categories.find(c => c.id === editId)?.parentId)) && (
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}><Palette size={14} /> 颜色</label>
-              <div className="flex items-center gap-2 flex-wrap">
-                {PRESET_COLORS.map(c => (
-                  <button key={c} onClick={() => setStandaloneColor(c)} className="w-7 h-7 rounded-full transition-all duration-150"
-                    style={{ backgroundColor: c, boxShadow: standaloneColor === c ? `0 0 0 2px var(--deep-void), 0 0 0 3px ${c}` : 'none', transform: standaloneColor === c ? 'scale(1.15)' : 'scale(1)' }} />
-                ))}
-              </div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>颜色</label>
+              <ColorPicker value={standaloneColor} onChange={setStandaloneColor} />
             </div>
           )}
 

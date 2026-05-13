@@ -101,10 +101,32 @@ export function getCategoryPath(categoryId: string, categories: Category[]): str
 }
 
 export const PRESET_COLORS = [
-  '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
-  '#ec4899', '#06b6d4', '#f97316', '#6366f1', '#14b8a6',
-  '#e11d48', '#84cc16',
+  // 第一行：经典色
+  '#3b82f6', '#6366f1', '#8b5cf6', '#a78bfa',
+  '#ec4899', '#e11d48', '#ef4444', '#f97316',
+  // 第二行：自然色
+  '#f59e0b', '#eab308', '#84cc16', '#10b981',
+  '#14b8a6', '#06b6d4', '#0ea5e9', '#6ee7f2',
+  // 第三行：柔和色
+  '#fb923c', '#f472b6', '#c084fc', '#a3e635',
+  '#fbbf24', '#34d399', '#38bdf8', '#e879f9',
 ]
+
+// ─── 主题 ──────────────────────────────────────────────
+
+export type ThemeMode = 'dark' | 'light'
+
+const THEME_KEY = 'skill-tracker-theme'
+
+export function getTheme(): ThemeMode {
+  const raw = localStorage.getItem(THEME_KEY)
+  if (raw === 'light' || raw === 'dark') return raw
+  return 'dark'
+}
+
+export function saveTheme(theme: ThemeMode) {
+  localStorage.setItem(THEME_KEY, theme)
+}
 
 // Data export/import for sync
 export function exportAllData() {
