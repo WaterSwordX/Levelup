@@ -23,13 +23,12 @@ export default function Layout() {
 
       {/* Desktop Sidebar */}
       <nav
-        className="hidden md:flex flex-col w-56 shrink-0 p-3 gap-1 sticky top-0 self-start h-screen"
+        className="hidden md:flex flex-col w-56 p-3 gap-1 fixed top-0 left-0 h-screen"
         style={{
           background: 'var(--sidebar-bg)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           borderRight: '1px solid var(--whisper-border)',
-          position: 'relative',
           zIndex: 10,
         }}
       >
@@ -127,7 +126,7 @@ export default function Layout() {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 pb-20 md:pb-6 overflow-auto" style={{ position: 'relative', zIndex: 5 }}>
+      <main className="flex-1 pb-20 md:pb-6 md:ml-56" style={{ position: 'relative', zIndex: 5 }}>
         <div className="max-w-5xl mx-auto p-4 md:p-6 lg:p-8">
           <Outlet />
         </div>
