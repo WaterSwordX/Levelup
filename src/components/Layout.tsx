@@ -23,7 +23,7 @@ export default function Layout() {
 
       {/* Desktop Sidebar */}
       <nav
-        className="hidden md:flex flex-col w-56 shrink-0 p-3 gap-1"
+        className="hidden md:flex flex-col w-56 shrink-0 p-3 gap-1 sticky top-0 self-start h-screen"
         style={{
           background: 'rgba(13, 15, 20, 0.85)',
           backdropFilter: 'blur(16px)',
