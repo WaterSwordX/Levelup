@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, FolderTree, PenLine, Timer, BarChart3, HelpCircle, Zap, Settings } from 'lucide-react'
+import { LayoutDashboard, FolderTree, PenLine, Timer, BarChart3, HelpCircle, Zap, Settings, CalendarDays } from 'lucide-react'
 import ParticleCanvas from './ParticleCanvas'
 import CursorGlow from './CursorGlow'
 import AmbientOrbs from './AmbientOrbs'
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/categories', icon: FolderTree, label: '分类' },
   { to: '/record', icon: PenLine, label: '记录' },
   { to: '/focus', icon: Timer, label: '专注' },
+  { to: '/days', icon: CalendarDays, label: '计时日' },
   { to: '/stats', icon: BarChart3, label: '统计' },
 ]
 

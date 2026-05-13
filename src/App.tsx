@@ -8,6 +8,7 @@ import Focus from './pages/Focus'
 import Stats from './pages/Stats'
 import Guide from './pages/Guide'
 import Settings from './pages/Settings'
+import Days from './pages/Days'
 import type { Category, TimeEntry, Goal, Milestone } from './types'
 import { loadCategories, loadEntries, loadGoals, loadMilestones, saveMilestones, detectNewMilestones, getCategoryTotalTime } from './store'
 import { isSyncConfigured, syncToCloud } from './sync'
@@ -87,6 +88,7 @@ export default function App() {
           <Route path="/record" element={<Record categories={categories} entries={entries} setEntries={handleSetEntries} />} />
           <Route path="/focus" element={<Focus categories={categories} entries={entries} setEntries={handleSetEntries} />} />
           <Route path="/stats" element={<Stats categories={categories} entries={entries} />} />
+          <Route path="/days" element={<Days categories={categories} entries={entries} setCategories={setCategories} />} />
           <Route path="/guide" element={<Guide />} />
           <Route path="/settings" element={<Settings currentData={{ categories, entries, goals, milestones }} />} />
         </Route>
