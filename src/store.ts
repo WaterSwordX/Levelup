@@ -114,13 +114,13 @@ export const PRESET_COLORS = [
 
 // ─── 主题 ──────────────────────────────────────────────
 
-export type ThemeMode = 'dark' | 'light' | 'warm'
+export type ThemeMode = 'dark' | 'light'
 
 const THEME_KEY = 'skill-tracker-theme'
 
 export function getTheme(): ThemeMode {
   const raw = localStorage.getItem(THEME_KEY)
-  if (raw === 'light' || raw === 'dark' || raw === 'warm') return raw
+  if (raw === 'light' || raw === 'dark') return raw
   return 'dark'
 }
 
