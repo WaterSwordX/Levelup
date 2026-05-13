@@ -301,53 +301,113 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
         </RevealSection>
       )}
 
-      {/* Countdown Days */}
+      {/* Countdown Days - 正计时日 */}
       {countdownCategories.length > 0 && (
-        <RevealSection delay={130}>
+        <RevealSection delay={60}>
           <div className="space-y-3">
             <h3 className="section-title flex items-center gap-2">
               <Timer size={13} style={{ color: '#E8941A' }} />
-              已持续
+              正计时日
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {countdownCategories.map(({ category, days, startDate }) => {
                 const total = getCategoryTotalTime(category.id, entries, categories)
+                const weeks = Math.floor(days / 7)
+                const months = Math.floor(days / 30)
+                const startStr = `${startDate.getFullYear()}.${String(startDate.getMonth() + 1).padStart(2, '0')}.${String(startDate.getDate()).padStart(2, '0')}`
                 return (
                   <TiltCard
                     key={category.id}
-                    className="p-5 animate-fade-in-up"
+                    className="relative overflow-hidden animate-fade-in-up"
                     style={{
-                      background: `linear-gradient(135deg, ${category.color}12, ${category.color}06)`,
-                      border: `1px solid ${category.color}30`,
+                      background: `linear-gradient(145deg, ${category.color}18, ${category.color}08, transparent)`,
+                      border: `1px solid ${category.color}25`,
+                      padding: 0,
                     }}
                   >
-                    <div className="flex items-center gap-2.5 mb-3">
-                      <span
-                        className="w-3 h-3 rounded-full shrink-0"
-                        style={{ backgroundColor: category.color, boxShadow: `0 0 8px ${category.color}60` }}
-                      />
-                      <span className="text-sm font-semibold truncate" style={{ color: 'var(--bright-chalk)' }}>
-                        {category.name}
-                      </span>
+                    {/* 顶部装饰条 */}
+                    <div
+                      className="absolute top-0 left-0 right-0 h-1"
+                      style={{ background: `linear-gradient(90deg, ${category.color}, ${category.color}60, transparent)` }}
+                    />
+                    {/* 装饰性大数字背景 */}
+                    <div
+                      className="absolute -right-3 -top-4 text-[120px] font-black leading-none select-none pointer-events-none"
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        color: `${category.color}08`,
+                        WebkitTextStroke: `1px ${category.color}12`,
+                      }}
+                    >
+                      {days}
                     </div>
-                    <div className="flex items-baseline gap-1.5 mb-2">
-                      <span
-                        className="text-3xl font-bold"
-                        style={{ fontFamily: "'JetBrains Mono', monospace", color: category.color }}
-                      >
-                        {days}
-                      </span>
-                      <span className="text-sm" style={{ color: 'var(--silver-mist)' }}>天</span>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
-                        {startDate.getFullYear()}年{startDate.getMonth() + 1}月{startDate.getDate()}日 至今
+
+                    <div className="relative p-5 pb-4">
+                      {/* 分类名称 + 色点 */}
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <span
+                          className="w-3.5 h-3.5 rounded-full shrink-0"
+                          style={{ backgroundColor: category.color, boxShadow: `0 0 10px ${category.color}50` }}
+                        />
+                        <span className="text-sm font-semibold" style={{ color: 'var(--bright-chalk)' }}>
+                          {category.name}
+                        </span>
+                      </div>
+
+                      {/* 主数字 */}
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <span
+                          className="text-5xl font-black tracking-tight"
+                          style={{ fontFamily: "'JetBrains Mono', monospace", color: category.color }}
+                        >
+                          {days}
+                        </span>
+                        <span className="text-lg font-medium" style={{ color: 'var(--silver-mist)' }}>天</span>
+                      </div>
+
+                      {/* 描述文字 */}
+                      <p className="text-sm mb-4" style={{ color: 'var(--silver-mist)' }}>
+                        {category.name}已经 <span className="font-semibold" style={{ color: 'var(--bright-chalk)' }}>{days}</span> 天了
                       </p>
-                      {total > 0 && (
-                        <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
-                          累计练习 {formatMinutes(total)}
-                        </p>
-                      )}
+
+                      {/* 详细信息网格 */}
+                      <div
+                        className="grid grid-cols-3 gap-2 p-3 rounded-xl"
+                        style={{ background: 'rgba(0,0,0,0.2)' }}
+                      >
+                        <div className="text-center">
+                          <div
+                            className="text-base font-bold"
+                            style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--bright-chalk)' }}
+                          >
+                            {weeks}
+                          </div>
+                          <div className="text-[10px]" style={{ color: 'var(--slate-ghost)' }}>周</div>
+                        </div>
+                        <div className="text-center" style={{ borderLeft: '1px solid var(--whisper-border)', borderRight: '1px solid var(--whisper-border)' }}>
+                          <div
+                            className="text-base font-bold"
+                            style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--bright-chalk)' }}
+                          >
+                            {months}
+                          </div>
+                          <div className="text-[10px]" style={{ color: 'var(--slate-ghost)' }}>个月</div>
+                        </div>
+                        <div className="text-center">
+                          <div
+                            className="text-base font-bold"
+                            style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--bright-chalk)' }}
+                          >
+                            {total > 0 ? Math.round(total / 60) : '—'}
+                          </div>
+                          <div className="text-[10px]" style={{ color: 'var(--slate-ghost)' }}>练习小时</div>
+                        </div>
+                      </div>
+
+                      {/* 起始日期 */}
+                      <p className="text-[11px] mt-3" style={{ color: 'var(--slate-ghost)' }}>
+                        从 {startStr} 开始至今
+                      </p>
                     </div>
                   </TiltCard>
                 )
