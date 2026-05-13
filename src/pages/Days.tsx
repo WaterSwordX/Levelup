@@ -384,6 +384,8 @@ export default function Days({ categories, entries, setCategories }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [selectedCatId, setSelectedCatId] = useState('')
+  const [standaloneMode, setStandaloneMode] = useState(false)
+  const [standaloneName, setStandaloneName] = useState('')
   const [mode, setMode] = useState<'countup' | 'countdown'>('countup')
   const [dateValue, setDateValue] = useState('')
   const [noteValue, setNoteValue] = useState('')
@@ -432,6 +434,8 @@ export default function Days({ categories, entries, setCategories }: Props) {
     setShowForm(false)
     setEditId(null)
     setSelectedCatId('')
+    setStandaloneMode(false)
+    setStandaloneName('')
     setDateValue('')
     setNoteValue('')
     setMode('countup')
@@ -447,21 +451,45 @@ export default function Days({ categories, entries, setCategories }: Props) {
   }
 
   const handleSave = () => {
-    if (!selectedCatId || !dateValue) return
+    if (!dateValue) return
+    if (!standaloneMode && !selectedCatId) return
+    if (standaloneMode && !standaloneName.trim()) return
+
     const isCountdown = mode === 'countdown'
-    const updated = categories.map(c => {
-      if (c.id !== selectedCatId) return c
-      return {
-        ...c,
+    const PRESET_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1', '#14b8a6', '#e11d48', '#84cc16']
+
+    if (standaloneMode) {
+      // 创建独立分类（无父级）
+      const newCat: Category = {
+        id: crypto.randomUUID(),
+        name: standaloneName.trim(),
+        parentId: null,
+        color: PRESET_COLORS[categories.length % PRESET_COLORS.length],
+        createdAt: new Date().toISOString(),
         showCountdown: true,
         countdownMode: mode,
         startDate: isCountdown ? undefined : dateValue,
         targetDate: isCountdown ? dateValue : undefined,
         note: noteValue || undefined,
       }
-    })
-    setCategories(updated)
-    saveCategories(updated)
+      const updated = [...categories, newCat]
+      setCategories(updated)
+      saveCategories(updated)
+    } else {
+      const updated = categories.map(c => {
+        if (c.id !== selectedCatId) return c
+        return {
+          ...c,
+          showCountdown: true,
+          countdownMode: mode,
+          startDate: isCountdown ? undefined : dateValue,
+          targetDate: isCountdown ? dateValue : undefined,
+          note: noteValue || undefined,
+        }
+      })
+      setCategories(updated)
+      saveCategories(updated)
+    }
     resetForm()
   }
 
@@ -573,24 +601,60 @@ export default function Days({ categories, entries, setCategories }: Props) {
             </div>
           </div>
 
-          {/* 选择分类 - 树形结构 */}
+          {/* 选择分类 - 树形结构 或 直接输入名称 */}
           {!editId && (
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>选择分类</label>
-              <div className="max-h-52 overflow-y-auto rounded-xl p-2" style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--whisper-border)' }}>
-                {availableCategories.length === 0 ? (
-                  <p className="text-xs py-3 text-center" style={{ color: 'var(--slate-ghost)' }}>所有分类都已添加计时日</p>
-                ) : (
-                  <CategoryTreePicker
-                    categories={categories}
-                    availableCategories={availableCategories}
-                    selectedId={selectedCatId}
-                    onSelect={setSelectedCatId}
-                    parentId={null}
-                    level={0}
-                  />
-                )}
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>分类</label>
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() => { setStandaloneMode(false); setStandaloneName('') }}
+                  className="flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200"
+                  style={{
+                    background: !standaloneMode ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)',
+                    border: !standaloneMode ? '1px solid rgba(232,148,26,0.15)' : '1px solid var(--whisper-border)',
+                    color: !standaloneMode ? 'var(--bright-chalk)' : 'var(--silver-mist)',
+                  }}
+                >
+                  选择已有分类
+                </button>
+                <button
+                  onClick={() => { setStandaloneMode(true); setSelectedCatId('') }}
+                  className="flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200"
+                  style={{
+                    background: standaloneMode ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)',
+                    border: standaloneMode ? '1px solid rgba(232,148,26,0.15)' : '1px solid var(--whisper-border)',
+                    color: standaloneMode ? 'var(--bright-chalk)' : 'var(--silver-mist)',
+                  }}
+                >
+                  直接添加
+                </button>
               </div>
+
+              {standaloneMode ? (
+                <input
+                  type="text"
+                  value={standaloneName}
+                  onChange={e => setStandaloneName(e.target.value)}
+                  placeholder="输入名称，如：学吉他、备考雅思..."
+                  className="input-field"
+                  autoFocus
+                />
+              ) : (
+                <div className="max-h-52 overflow-y-auto rounded-xl p-2" style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--whisper-border)' }}>
+                  {availableCategories.length === 0 ? (
+                    <p className="text-xs py-3 text-center" style={{ color: 'var(--slate-ghost)' }}>所有分类都已添加计时日</p>
+                  ) : (
+                    <CategoryTreePicker
+                      categories={categories}
+                      availableCategories={availableCategories}
+                      selectedId={selectedCatId}
+                      onSelect={setSelectedCatId}
+                      parentId={null}
+                      level={0}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -626,7 +690,7 @@ export default function Days({ categories, entries, setCategories }: Props) {
 
           <button
             onClick={handleSave}
-            disabled={!selectedCatId || !dateValue}
+            disabled={!dateValue || (!standaloneMode && !selectedCatId) || (standaloneMode && !standaloneName.trim())}
             className="btn-primary flex items-center gap-2 px-4 py-2.5 text-sm w-full justify-center"
           >
             <Check size={15} />
