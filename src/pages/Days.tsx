@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import type { Category, TimeEntry } from '../types'
-import { saveCategories, getCategoryTotalTime } from '../store'
+import { saveCategories, getCategoryTotalTime, PRESET_COLORS } from '../store'
 import RevealSection from '../components/RevealSection'
 import {
   Plus, X, Check, Calendar, Timer, ChevronDown, ChevronRight,
   Pin, PinOff, Pencil, Trash2, ArrowUpCircle, ArrowDownCircle,
-  StickyNote,
+  StickyNote, Palette,
 } from 'lucide-react'
 
 interface Props {
@@ -32,7 +32,6 @@ function fmtDate(d: Date): string {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
-/** 将天数分解为年月周日 */
 function breakDownDays(totalDays: number, now: Date, refDateStr: string) {
   const ref = new Date(refDateStr + 'T00:00:00')
   let years = now.getFullYear() - ref.getFullYear()
@@ -44,15 +43,14 @@ function breakDownDays(totalDays: number, now: Date, refDateStr: string) {
   return { years, months, weeks, days, totalDays }
 }
 
-// ─── 单条计时日卡片 ──────────────────────────────────────────
+// ─── 正数日卡片 ──────────────────────────────────────────
 
-function DayCard({
-  category, totalDays, mode, now, entries, allCategories,
+function CountUpCard({
+  category, totalDays, now, entries, allCategories,
   onEdit, onRemove, onTogglePin,
 }: {
   category: Category
   totalDays: number
-  mode: 'countup' | 'countdown'
   now: Date
   entries: TimeEntry[]
   allCategories: Category[]
@@ -61,199 +59,162 @@ function DayCard({
   onTogglePin: () => void
 }) {
   const total = getCategoryTotalTime(category.id, entries, allCategories)
-  const dateStr = mode === 'countup' ? category.startDate! : category.targetDate!
-  const bd = breakDownDays(totalDays, now, dateStr)
-  const dateObj = new Date(dateStr + 'T00:00:00')
-  const isCountdown = mode === 'countdown'
-
-  const verb = isCountdown ? '距离' : ''
-  const suffix = isCountdown ? '还有' : '已经'
-  const timeUnit = isCountdown ? '天' : '天了'
+  const bd = breakDownDays(totalDays, now, category.startDate!)
+  const dateObj = new Date(category.startDate! + 'T00:00:00')
 
   return (
     <div
       className="relative overflow-hidden rounded-2xl group"
       style={{
-        background: `linear-gradient(160deg, ${category.color}12, ${category.color}05, transparent)`,
-        border: `1px solid ${category.color}18`,
+        background: `linear-gradient(150deg, ${category.color}14, ${category.color}06, rgba(232,148,26,0.02))`,
+        border: `1px solid ${category.color}1a`,
       }}
     >
-      {/* 顶部渐变条 */}
-      <div
-        className="absolute top-0 left-0 right-0 h-0.5"
-        style={{ background: `linear-gradient(90deg, ${category.color}, ${category.color}40, transparent)` }}
-      />
-
-      {/* 装饰性大数字 */}
+      <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${category.color}, ${category.color}30, transparent)` }} />
       <div
         className="absolute -right-2 -top-5 select-none pointer-events-none"
-        style={{
-          fontSize: '120px',
-          lineHeight: 1,
-          fontFamily: "'JetBrains Mono', monospace",
-          fontWeight: 900,
-          color: `${category.color}06`,
-          WebkitTextStroke: `1px ${category.color}0a`,
-        }}
+        style={{ fontSize: '110px', lineHeight: 1, fontFamily: "'JetBrains Mono', monospace", fontWeight: 900, color: `${category.color}06`, WebkitTextStroke: `1px ${category.color}0a` }}
       >
         {totalDays}
       </div>
 
       <div className="relative p-5">
-        {/* 头部 */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
-            {category.pinned && <Pin size={12} style={{ color: category.color }} className="shrink-0" />}
-            <span
-              className="w-3.5 h-3.5 rounded-full shrink-0"
-              style={{ backgroundColor: category.color, boxShadow: `0 0 10px ${category.color}40` }}
-            />
-            <span className="text-sm font-semibold" style={{ color: 'var(--bright-chalk)' }}>
-              {category.name}
-            </span>
-            {isCountdown && (
-              <span
-                className="text-[10px] px-1.5 py-0.5 rounded-md font-medium"
-                style={{ background: `${category.color}20`, color: category.color }}
-              >
-                倒数
-              </span>
-            )}
+            {category.pinned && <Pin size={11} style={{ color: category.color }} className="shrink-0" />}
+            <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: category.color, boxShadow: `0 0 8px ${category.color}40` }} />
+            <span className="text-sm font-semibold" style={{ color: 'var(--bright-chalk)' }}>{category.name}</span>
           </div>
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <button onClick={onTogglePin} className="p-1.5 rounded-md transition-colors" style={{ color: 'var(--slate-ghost)' }} title={category.pinned ? '取消置顶' : '置顶'}>
-              {category.pinned ? <PinOff size={13} /> : <Pin size={13} />}
-            </button>
-            <button onClick={onEdit} className="p-1.5 rounded-md transition-colors" style={{ color: 'var(--slate-ghost)' }} title="编辑">
-              <Pencil size={13} />
-            </button>
-            <button onClick={onRemove} className="p-1.5 rounded-md transition-colors" style={{ color: 'var(--slate-ghost)' }} title="删除">
-              <Trash2 size={13} />
-            </button>
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={onTogglePin} className="p-1.5 rounded-md" style={{ color: 'var(--slate-ghost)' }}>{category.pinned ? <PinOff size={12} /> : <Pin size={12} />}</button>
+            <button onClick={onEdit} className="p-1.5 rounded-md" style={{ color: 'var(--slate-ghost)' }}><Pencil size={12} /></button>
+            <button onClick={onRemove} className="p-1.5 rounded-md" style={{ color: 'var(--slate-ghost)' }}><Trash2 size={12} /></button>
           </div>
         </div>
 
-        {/* 主数字 */}
-        <div className="flex items-baseline gap-2 mb-1.5">
-          <span
-            className="text-5xl font-black tracking-tight"
-            style={{ fontFamily: "'JetBrains Mono', monospace", color: category.color }}
-          >
-            {isCountdown && totalDays < 0 ? Math.abs(totalDays) : totalDays}
-          </span>
+        <div className="flex items-baseline gap-2 mb-1">
+          <span className="text-5xl font-black tracking-tight" style={{ fontFamily: "'JetBrains Mono', monospace", color: category.color }}>{totalDays}</span>
           <span className="text-lg font-medium" style={{ color: 'var(--silver-mist)' }}>天</span>
         </div>
-
-        {/* 描述 */}
         <p className="text-sm mb-4" style={{ color: 'var(--silver-mist)' }}>
-          {verb}{category.name}{suffix}{' '}
-          <span className="font-semibold" style={{ color: 'var(--bright-chalk)' }}>
-            {isCountdown && totalDays < 0 ? Math.abs(totalDays) : totalDays}
-          </span> {timeUnit}
+          {category.name}已经 <span className="font-semibold" style={{ color: 'var(--bright-chalk)' }}>{totalDays}</span> 天了
         </p>
 
-        {/* 备注 */}
         {category.note && (
-          <div className="flex items-start gap-2 mb-4 px-3 py-2 rounded-lg" style={{ background: 'rgba(0,0,0,0.15)' }}>
-            <StickyNote size={12} className="shrink-0 mt-0.5" style={{ color: 'var(--slate-ghost)' }} />
+          <div className="flex items-start gap-2 mb-3 px-3 py-2 rounded-lg" style={{ background: 'rgba(0,0,0,0.15)' }}>
+            <StickyNote size={11} className="shrink-0 mt-0.5" style={{ color: 'var(--slate-ghost)' }} />
             <p className="text-xs" style={{ color: 'var(--silver-mist)' }}>{category.note}</p>
           </div>
         )}
 
-        {/* 详情网格 */}
-        <div
-          className="grid grid-cols-4 gap-0 rounded-xl overflow-hidden"
-          style={{ background: 'rgba(0,0,0,0.2)' }}
-        >
+        <div className="grid grid-cols-4 gap-0 rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.2)' }}>
           {[
             { val: bd.years, label: '年' },
             { val: bd.months, label: '月' },
             { val: bd.weeks, label: '周' },
             { val: total > 0 ? Math.round(total / 60) : null, label: '小时' },
           ].map((item, i) => (
-            <div key={item.label} className="text-center py-2.5 px-2" style={i < 3 ? { borderRight: '1px solid var(--whisper-border)' } : undefined}>
+            <div key={item.label} className="text-center py-2 px-2" style={i < 3 ? { borderRight: '1px solid var(--whisper-border)' } : undefined}>
               <div className="text-base font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--bright-chalk)' }}>
-                {item.val !== null && item.val !== undefined ? item.val : '—'}
+                {item.val ?? '—'}
               </div>
               <div className="text-[10px] mt-0.5" style={{ color: 'var(--slate-ghost)' }}>{item.label}</div>
             </div>
           ))}
         </div>
 
-        {/* 底部 */}
         <div className="flex items-center justify-between mt-3">
-          <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
-            {isCountdown ? '目标' : '从'} {fmtDate(dateObj)} {isCountdown ? '' : '至今'}
-          </p>
-          {total > 0 && (
-            <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
-              累计 {formatMinutes(total)}
-            </p>
-          )}
+          <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>从 {fmtDate(dateObj)} 至今</p>
+          {total > 0 && <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>累计 {formatMinutes(total)}</p>}
         </div>
       </div>
     </div>
   )
 }
 
-// ─── 可折叠的分类分组 ──────────────────────────────────────────
+// ─── 倒数日卡片 ──────────────────────────────────────────
 
-function CategoryGroup({
-  parent, children: childCats, now, entries, allCategories,
+function CountDownCard({
+  category, totalDays, now, entries, allCategories,
   onEdit, onRemove, onTogglePin,
 }: {
-  parent: { name: string; color: string } | null
-  children: { category: Category; totalDays: number; mode: 'countup' | 'countdown' }[]
+  category: Category
+  totalDays: number
   now: Date
   entries: TimeEntry[]
   allCategories: Category[]
-  onEdit: (cat: Category) => void
-  onRemove: (catId: string) => void
-  onTogglePin: (cat: Category) => void
+  onEdit: () => void
+  onRemove: () => void
+  onTogglePin: () => void
 }) {
-  const [expanded, setExpanded] = useState(true)
+  const total = getCategoryTotalTime(category.id, entries, allCategories)
+  const bd = breakDownDays(totalDays, now, category.targetDate!)
+  const dateObj = new Date(category.targetDate! + 'T00:00:00')
 
   return (
-    <div>
-      {/* 分组头部 */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2.5 py-2.5 px-1 rounded-lg transition-colors duration-150"
-        style={{ color: 'var(--bright-chalk)' }}
+    <div
+      className="relative overflow-hidden rounded-2xl group"
+      style={{
+        background: `linear-gradient(150deg, ${category.color}10, ${category.color}05, rgba(78,205,196,0.02))`,
+        border: `1px solid ${category.color}15`,
+      }}
+    >
+      <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${category.color}, ${category.color}30, transparent)` }} />
+      <div
+        className="absolute -right-2 -top-5 select-none pointer-events-none"
+        style={{ fontSize: '110px', lineHeight: 1, fontFamily: "'JetBrains Mono', monospace", fontWeight: 900, color: `${category.color}06`, WebkitTextStroke: `1px ${category.color}0a` }}
       >
-        {expanded ? <ChevronDown size={14} style={{ color: 'var(--slate-ghost)' }} /> : <ChevronRight size={14} style={{ color: 'var(--slate-ghost)' }} />}
-        {parent ? (
-          <>
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: parent.color }} />
-            <span className="text-sm font-semibold">{parent.name}</span>
-          </>
-        ) : (
-          <span className="text-sm font-semibold">未分组</span>
-        )}
-        <span className="text-[11px] ml-auto" style={{ color: 'var(--slate-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>
-          {childCats.length}
-        </span>
-      </button>
+        {totalDays}
+      </div>
 
-      {/* 卡片列表 */}
-      {expanded && (
-        <div className="space-y-3 ml-4 pl-3" style={{ borderLeft: '1px solid var(--whisper-border)' }}>
-          {childCats.map(({ category, totalDays, mode }) => (
-            <DayCard
-              key={category.id}
-              category={category}
-              totalDays={totalDays}
-              mode={mode}
-              now={now}
-              entries={entries}
-              allCategories={allCategories}
-              onEdit={() => onEdit(category)}
-              onRemove={() => onRemove(category.id)}
-              onTogglePin={() => onTogglePin(category)}
-            />
+      <div className="relative p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            {category.pinned && <Pin size={11} style={{ color: category.color }} className="shrink-0" />}
+            <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: category.color, boxShadow: `0 0 8px ${category.color}40` }} />
+            <span className="text-sm font-semibold" style={{ color: 'var(--bright-chalk)' }}>{category.name}</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-medium" style={{ background: `${category.color}18`, color: category.color }}>倒数</span>
+          </div>
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={onTogglePin} className="p-1.5 rounded-md" style={{ color: 'var(--slate-ghost)' }}>{category.pinned ? <PinOff size={12} /> : <Pin size={12} />}</button>
+            <button onClick={onEdit} className="p-1.5 rounded-md" style={{ color: 'var(--slate-ghost)' }}><Pencil size={12} /></button>
+            <button onClick={onRemove} className="p-1.5 rounded-md" style={{ color: 'var(--slate-ghost)' }}><Trash2 size={12} /></button>
+          </div>
+        </div>
+
+        <div className="flex items-baseline gap-2 mb-1">
+          <span className="text-5xl font-black tracking-tight" style={{ fontFamily: "'JetBrains Mono', monospace", color: category.color }}>{totalDays}</span>
+          <span className="text-lg font-medium" style={{ color: 'var(--silver-mist)' }}>天</span>
+        </div>
+        <p className="text-sm mb-4" style={{ color: 'var(--silver-mist)' }}>
+          距离{category.name}还有 <span className="font-semibold" style={{ color: 'var(--bright-chalk)' }}>{totalDays}</span> 天
+        </p>
+
+        {category.note && (
+          <div className="flex items-start gap-2 mb-3 px-3 py-2 rounded-lg" style={{ background: 'rgba(0,0,0,0.15)' }}>
+            <StickyNote size={11} className="shrink-0 mt-0.5" style={{ color: 'var(--slate-ghost)' }} />
+            <p className="text-xs" style={{ color: 'var(--silver-mist)' }}>{category.note}</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 gap-0 rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.2)' }}>
+          {[
+            { val: bd.months + bd.years * 12, label: '月' },
+            { val: bd.weeks, label: '周' },
+            { val: bd.totalDays, label: '天' },
+          ].map((item, i) => (
+            <div key={item.label} className="text-center py-2 px-2" style={i < 2 ? { borderRight: '1px solid var(--whisper-border)' } : undefined}>
+              <div className="text-base font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--bright-chalk)' }}>{item.val}</div>
+              <div className="text-[10px] mt-0.5" style={{ color: 'var(--slate-ghost)' }}>{item.label}</div>
+            </div>
           ))}
         </div>
-      )}
+
+        <div className="flex items-center justify-between mt-3">
+          <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>目标 {fmtDate(dateObj)}</p>
+          {total > 0 && <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>累计 {formatMinutes(total)}</p>}
+        </div>
+      </div>
     </div>
   )
 }
@@ -270,110 +231,48 @@ function CategoryTreePicker({
   parentId: string | null
   level: number
 }) {
-  // 当前层级的子分类（只显示 available 中的，或者有 available 子孙的父级）
   const children = categories.filter(c => c.parentId === parentId)
   const visible = children.filter(c => {
     if (availableCategories.some(a => a.id === c.id)) return true
-    // 检查是否有可用的子孙
-    const hasAvailableDescendant = (catId: string): boolean => {
-      return categories.some(cc => cc.parentId === catId && (
-        availableCategories.some(a => a.id === cc.id) || hasAvailableDescendant(cc.id)
-      ))
-    }
-    return hasAvailableDescendant(c.id)
+    const has = (id: string): boolean => categories.some(cc => cc.parentId === id && (availableCategories.some(a => a.id === cc.id) || has(cc.id)))
+    return has(c.id)
   })
-
   if (visible.length === 0) return null
 
   return (
     <div className={level > 0 ? 'ml-4 pl-2.5' : ''} style={level > 0 ? { borderLeft: '1px solid var(--whisper-border)' } : undefined}>
       {visible.map(cat => {
-        const isAvailable = availableCategories.some(a => a.id === cat.id)
-        const isSelected = selectedId === cat.id
-        const hasAvailableChildren = categories.some(cc => cc.parentId === cat.id && availableCategories.some(a => a.id === cc.id))
-
-        return (
-          <CategoryTreePickerNode
-            key={cat.id}
-            category={cat}
-            categories={categories}
-            availableCategories={availableCategories}
-            selectedId={selectedId}
-            onSelect={onSelect}
-            isAvailable={isAvailable}
-            isSelected={isSelected}
-            hasAvailableChildren={hasAvailableChildren}
-            level={level}
-          />
-        )
+        const avail = availableCategories.some(a => a.id === cat.id)
+        const sel = selectedId === cat.id
+        const hasKids = categories.some(cc => cc.parentId === cat.id && (availableCategories.some(a => a.id === cc.id) || categories.some(ccc => ccc.parentId === cc.id)))
+        return <TreePickerNode key={cat.id} cat={cat} categories={categories} availableCategories={availableCategories} selectedId={selectedId} onSelect={onSelect} isAvail={avail} isSel={sel} hasKids={hasKids} level={level} />
       })}
     </div>
   )
 }
 
-function CategoryTreePickerNode({
-  category, categories, availableCategories, selectedId, onSelect,
-  isAvailable, isSelected, hasAvailableChildren, level,
-}: {
-  category: Category
-  categories: Category[]
-  availableCategories: Category[]
-  selectedId: string
-  onSelect: (id: string) => void
-  isAvailable: boolean
-  isSelected: boolean
-  hasAvailableChildren: boolean
-  level: number
+function TreePickerNode({ cat, categories, availableCategories, selectedId, onSelect, isAvail, isSel, hasKids, level }: {
+  cat: Category; categories: Category[]; availableCategories: Category[]; selectedId: string; onSelect: (id: string) => void
+  isAvail: boolean; isSel: boolean; hasKids: boolean; level: number
 }) {
   const [expanded, setExpanded] = useState(level < 1)
-
   return (
     <div>
       <div
         className="flex items-center gap-2 py-2 px-2 rounded-lg transition-all duration-150"
-        style={{
-          background: isSelected ? 'var(--ember-soft)' : 'transparent',
-          cursor: isAvailable ? 'pointer' : 'default',
-          opacity: isAvailable ? 1 : 0.6,
-        }}
-        onClick={() => { if (isAvailable) onSelect(category.id) }}
+        style={{ background: isSel ? 'var(--ember-soft)' : 'transparent', cursor: isAvail ? 'pointer' : 'default', opacity: isAvail ? 1 : 0.5 }}
+        onClick={() => { if (isAvail) onSelect(cat.id) }}
       >
-        {/* 展开/折叠按钮 */}
-        {hasAvailableChildren ? (
-          <button
-            className="p-0.5 rounded transition-colors duration-150 shrink-0"
-            style={{ color: 'var(--slate-ghost)' }}
-            onClick={e => { e.stopPropagation(); setExpanded(!expanded) }}
-          >
+        {hasKids ? (
+          <button className="p-0.5 rounded shrink-0" style={{ color: 'var(--slate-ghost)' }} onClick={e => { e.stopPropagation(); setExpanded(!expanded) }}>
             {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           </button>
-        ) : (
-          <span className="w-4 shrink-0" />
-        )}
-
-        {/* 色点 */}
-        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: category.color }} />
-
-        {/* 名称 */}
-        <span className="text-sm flex-1 truncate" style={{ color: isSelected ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
-          {category.name}
-        </span>
-
-        {/* 选中标记 */}
-        {isSelected && <Check size={13} style={{ color: '#E8941A' }} className="shrink-0" />}
+        ) : <span className="w-4 shrink-0" />}
+        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+        <span className="text-sm flex-1 truncate" style={{ color: isSel ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>{cat.name}</span>
+        {isSel && <Check size={13} style={{ color: '#E8941A' }} className="shrink-0" />}
       </div>
-
-      {/* 子分类 */}
-      {expanded && hasAvailableChildren && (
-        <CategoryTreePicker
-          categories={categories}
-          availableCategories={availableCategories}
-          selectedId={selectedId}
-          onSelect={onSelect}
-          parentId={category.id}
-          level={level + 1}
-        />
-      )}
+      {expanded && hasKids && <CategoryTreePicker categories={categories} availableCategories={availableCategories} selectedId={selectedId} onSelect={onSelect} parentId={cat.id} level={level + 1} />}
     </div>
   )
 }
@@ -386,6 +285,7 @@ export default function Days({ categories, entries, setCategories }: Props) {
   const [selectedCatId, setSelectedCatId] = useState('')
   const [standaloneMode, setStandaloneMode] = useState(false)
   const [standaloneName, setStandaloneName] = useState('')
+  const [standaloneColor, setStandaloneColor] = useState(PRESET_COLORS[0])
   const [mode, setMode] = useState<'countup' | 'countdown'>('countup')
   const [dateValue, setDateValue] = useState('')
   const [noteValue, setNoteValue] = useState('')
@@ -393,19 +293,15 @@ export default function Days({ categories, entries, setCategories }: Props) {
 
   const now = new Date()
 
-  // 所有已开启计时日的分类
   const activeCategories = categories
     .filter(c => c.showCountdown && (c.startDate || c.targetDate))
     .map(c => {
-      const isCountdown = c.countdownMode === 'countdown'
-      const dateStr = isCountdown ? c.targetDate! : c.startDate!
-      const d = diffDays(dateStr, now)
-      return { category: c, totalDays: Math.abs(d), mode: isCountdown ? 'countdown' as const : 'countup' as const }
+      const isCd = c.countdownMode === 'countdown'
+      const ds = isCd ? c.targetDate! : c.startDate!
+      return { category: c, totalDays: Math.abs(diffDays(ds, now)), mode: isCd ? 'countdown' as const : 'countup' as const }
     })
 
-  // 排序
-  const sorted = [...activeCategories].sort((a, b) => {
-    // 置顶优先
+  const sortFn = (a: typeof activeCategories[0], b: typeof activeCategories[0]) => {
     if (a.category.pinned && !b.category.pinned) return -1
     if (!a.category.pinned && b.category.pinned) return 1
     switch (sortMode) {
@@ -417,36 +313,25 @@ export default function Days({ categories, entries, setCategories }: Props) {
       }
       case 'name': return a.category.name.localeCompare(b.category.name)
     }
-  })
-
-  // 按父级分组
-  const groups = new Map<string | null, typeof sorted>()
-  for (const item of sorted) {
-    const pid = item.category.parentId
-    if (!groups.has(pid)) groups.set(pid, [])
-    groups.get(pid)!.push(item)
   }
 
-  // 可用分类（未开启计时日的）
+  const countupItems = activeCategories.filter(a => a.mode === 'countup').sort(sortFn)
+  const countdownItems = activeCategories.filter(a => a.mode === 'countdown').sort(sortFn)
+
   const availableCategories = categories.filter(c => !c.showCountdown)
 
   const resetForm = () => {
-    setShowForm(false)
-    setEditId(null)
-    setSelectedCatId('')
-    setStandaloneMode(false)
-    setStandaloneName('')
-    setDateValue('')
-    setNoteValue('')
-    setMode('countup')
+    setShowForm(false); setEditId(null); setSelectedCatId('')
+    setStandaloneMode(false); setStandaloneName(''); setStandaloneColor(PRESET_COLORS[0])
+    setDateValue(''); setNoteValue(''); setMode('countup')
   }
 
   const startEdit = (cat: Category) => {
-    setEditId(cat.id)
-    setSelectedCatId(cat.id)
+    setEditId(cat.id); setSelectedCatId(cat.id)
     setMode(cat.countdownMode || 'countup')
     setDateValue(cat.countdownMode === 'countdown' ? (cat.targetDate || '') : (cat.startDate || ''))
     setNoteValue(cat.note || '')
+    if (!cat.parentId) { setStandaloneMode(true); setStandaloneName(cat.name); setStandaloneColor(cat.color) }
     setShowForm(true)
   }
 
@@ -454,290 +339,208 @@ export default function Days({ categories, entries, setCategories }: Props) {
     if (!dateValue) return
     if (!standaloneMode && !selectedCatId) return
     if (standaloneMode && !standaloneName.trim()) return
-
-    const isCountdown = mode === 'countdown'
-    const PRESET_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1', '#14b8a6', '#e11d48', '#84cc16']
+    const isCd = mode === 'countdown'
 
     if (standaloneMode) {
-      // 创建独立分类（无父级）
-      const newCat: Category = {
-        id: crypto.randomUUID(),
-        name: standaloneName.trim(),
-        parentId: null,
-        color: PRESET_COLORS[categories.length % PRESET_COLORS.length],
-        createdAt: new Date().toISOString(),
-        showCountdown: true,
-        countdownMode: mode,
-        startDate: isCountdown ? undefined : dateValue,
-        targetDate: isCountdown ? dateValue : undefined,
-        note: noteValue || undefined,
-      }
-      const updated = [...categories, newCat]
-      setCategories(updated)
-      saveCategories(updated)
-    } else {
-      const updated = categories.map(c => {
-        if (c.id !== selectedCatId) return c
-        return {
-          ...c,
-          showCountdown: true,
-          countdownMode: mode,
-          startDate: isCountdown ? undefined : dateValue,
-          targetDate: isCountdown ? dateValue : undefined,
+      if (editId) {
+        const updated = categories.map(c => c.id === editId ? {
+          ...c, name: standaloneName.trim(), color: standaloneColor,
+          countdownMode: mode, startDate: isCd ? undefined : dateValue, targetDate: isCd ? dateValue : undefined, note: noteValue || undefined,
+        } : c)
+        setCategories(updated); saveCategories(updated)
+      } else {
+        const newCat: Category = {
+          id: crypto.randomUUID(), name: standaloneName.trim(), parentId: null,
+          color: standaloneColor, createdAt: new Date().toISOString(),
+          showCountdown: true, countdownMode: mode,
+          startDate: isCd ? undefined : dateValue, targetDate: isCd ? dateValue : undefined,
           note: noteValue || undefined,
         }
-      })
-      setCategories(updated)
-      saveCategories(updated)
+        const updated = [...categories, newCat]; setCategories(updated); saveCategories(updated)
+      }
+    } else {
+      const updated = categories.map(c => c.id === selectedCatId ? {
+        ...c, showCountdown: true, countdownMode: mode,
+        startDate: isCd ? undefined : dateValue, targetDate: isCd ? dateValue : undefined, note: noteValue || undefined,
+      } : c)
+      setCategories(updated); saveCategories(updated)
     }
     resetForm()
   }
 
   const handleRemove = (catId: string) => {
     if (!confirm('移除此计时日？')) return
-    const updated = categories.map(c =>
-      c.id === catId ? { ...c, showCountdown: false, startDate: undefined, targetDate: undefined, countdownMode: undefined } : c
-    )
-    setCategories(updated)
-    saveCategories(updated)
+    const updated = categories.map(c => c.id === catId ? { ...c, showCountdown: false, startDate: undefined, targetDate: undefined, countdownMode: undefined } : c)
+    setCategories(updated); saveCategories(updated)
   }
 
   const handleTogglePin = (cat: Category) => {
-    const updated = categories.map(c =>
-      c.id === cat.id ? { ...c, pinned: !c.pinned } : c
-    )
-    setCategories(updated)
-    saveCategories(updated)
+    const updated = categories.map(c => c.id === cat.id ? { ...c, pinned: !c.pinned } : c)
+    setCategories(updated); saveCategories(updated)
   }
 
   const hasAny = activeCategories.length > 0
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      {/* 头部 */}
       <RevealSection>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}>
-              计时日
-            </h2>
-            <p className="text-xs mt-1" style={{ color: 'var(--slate-ghost)' }}>
-              记录每件事已经坚持了多久，或距离目标还有多久
-            </p>
+            <h2 className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}>计时日</h2>
+            <p className="text-xs mt-1" style={{ color: 'var(--slate-ghost)' }}>记录坚持的每一天</p>
           </div>
           <div className="flex items-center gap-2">
             {hasAny && (
               <div className="flex items-center gap-1">
                 {(['days', 'date', 'name'] as SortMode[]).map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setSortMode(s)}
-                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150"
-                    style={{
-                      background: sortMode === s ? 'var(--ember-soft)' : 'transparent',
-                      color: sortMode === s ? 'var(--ember-glow)' : 'var(--slate-ghost)',
-                      border: sortMode === s ? '1px solid rgba(232,148,26,0.15)' : '1px solid transparent',
-                    }}
-                  >
+                  <button key={s} onClick={() => setSortMode(s)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150"
+                    style={{ background: sortMode === s ? 'var(--ember-soft)' : 'transparent', color: sortMode === s ? 'var(--ember-glow)' : 'var(--slate-ghost)', border: sortMode === s ? '1px solid rgba(232,148,26,0.15)' : '1px solid transparent' }}>
                     {s === 'days' ? '天数' : s === 'date' ? '日期' : '名称'}
                   </button>
                 ))}
               </div>
             )}
-            <button
-              onClick={() => { resetForm(); setShowForm(true) }}
-              className="btn-primary flex items-center gap-2 px-4 py-2 text-sm"
-            >
-              <Plus size={15} />
-              添加
+            <button onClick={() => { resetForm(); setShowForm(true) }} className="btn-primary flex items-center gap-2 px-4 py-2 text-sm">
+              <Plus size={15} /> 添加
             </button>
           </div>
         </div>
       </RevealSection>
 
-      {/* 添加/编辑表单 */}
+      {/* 表单 */}
       {showForm && (
-        <div
-          className="p-5 space-y-4 animate-fade-in-up"
-          style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}
-        >
+        <div className="p-5 space-y-4 animate-fade-in-up" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}>
-              {editId ? '编辑计时日' : '添加计时日'}
-            </h3>
-            <button onClick={resetForm} className="p-1.5 rounded-md" style={{ color: 'var(--slate-ghost)' }}>
-              <X size={16} />
-            </button>
+            <h3 className="text-sm font-semibold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}>{editId ? '编辑计时日' : '添加计时日'}</h3>
+            <button onClick={resetForm} className="p-1.5 rounded-md" style={{ color: 'var(--slate-ghost)' }}><X size={16} /></button>
           </div>
 
-          {/* 模式选择 */}
+          {/* 类型 */}
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>类型</label>
             <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setMode('countup')}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
-                style={{
-                  background: mode === 'countup' ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)',
-                  border: mode === 'countup' ? '1px solid rgba(232,148,26,0.2)' : '1px solid var(--whisper-border)',
-                  color: mode === 'countup' ? 'var(--bright-chalk)' : 'var(--silver-mist)',
-                }}
-              >
-                <ArrowUpCircle size={16} style={{ color: mode === 'countup' ? '#E8941A' : 'var(--slate-ghost)' }} />
-                正数日（已过）
+              <button onClick={() => setMode('countup')} className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
+                style={{ background: mode === 'countup' ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)', border: mode === 'countup' ? '1px solid rgba(232,148,26,0.2)' : '1px solid var(--whisper-border)', color: mode === 'countup' ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
+                <ArrowUpCircle size={16} style={{ color: mode === 'countup' ? '#E8941A' : 'var(--slate-ghost)' }} /> 正数日（已过）
               </button>
-              <button
-                onClick={() => setMode('countdown')}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
-                style={{
-                  background: mode === 'countdown' ? 'var(--teal-soft)' : 'rgba(255,255,255,0.02)',
-                  border: mode === 'countdown' ? '1px solid rgba(78,205,196,0.2)' : '1px solid var(--whisper-border)',
-                  color: mode === 'countdown' ? 'var(--bright-chalk)' : 'var(--silver-mist)',
-                }}
-              >
-                <ArrowDownCircle size={16} style={{ color: mode === 'countdown' ? '#4ECDC4' : 'var(--slate-ghost)' }} />
-                倒数日（未来）
+              <button onClick={() => setMode('countdown')} className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
+                style={{ background: mode === 'countdown' ? 'var(--teal-soft)' : 'rgba(255,255,255,0.02)', border: mode === 'countdown' ? '1px solid rgba(78,205,196,0.2)' : '1px solid var(--whisper-border)', color: mode === 'countdown' ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
+                <ArrowDownCircle size={16} style={{ color: mode === 'countdown' ? '#4ECDC4' : 'var(--slate-ghost)' }} /> 倒数日（未来）
               </button>
             </div>
           </div>
 
-          {/* 选择分类 - 树形结构 或 直接输入名称 */}
+          {/* 分类 */}
           {!editId && (
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>分类</label>
               <div className="flex gap-2 mb-3">
-                <button
-                  onClick={() => { setStandaloneMode(false); setStandaloneName('') }}
-                  className="flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200"
-                  style={{
-                    background: !standaloneMode ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)',
-                    border: !standaloneMode ? '1px solid rgba(232,148,26,0.15)' : '1px solid var(--whisper-border)',
-                    color: !standaloneMode ? 'var(--bright-chalk)' : 'var(--silver-mist)',
-                  }}
-                >
+                <button onClick={() => { setStandaloneMode(false); setStandaloneName('') }} className="flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200"
+                  style={{ background: !standaloneMode ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)', border: !standaloneMode ? '1px solid rgba(232,148,26,0.15)' : '1px solid var(--whisper-border)', color: !standaloneMode ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
                   选择已有分类
                 </button>
-                <button
-                  onClick={() => { setStandaloneMode(true); setSelectedCatId('') }}
-                  className="flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200"
-                  style={{
-                    background: standaloneMode ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)',
-                    border: standaloneMode ? '1px solid rgba(232,148,26,0.15)' : '1px solid var(--whisper-border)',
-                    color: standaloneMode ? 'var(--bright-chalk)' : 'var(--silver-mist)',
-                  }}
-                >
+                <button onClick={() => { setStandaloneMode(true); setSelectedCatId('') }} className="flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200"
+                  style={{ background: standaloneMode ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)', border: standaloneMode ? '1px solid rgba(232,148,26,0.15)' : '1px solid var(--whisper-border)', color: standaloneMode ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
                   直接添加
                 </button>
               </div>
-
               {standaloneMode ? (
-                <input
-                  type="text"
-                  value={standaloneName}
-                  onChange={e => setStandaloneName(e.target.value)}
-                  placeholder="输入名称，如：学吉他、备考雅思..."
-                  className="input-field"
-                  autoFocus
-                />
+                <div className="space-y-3">
+                  <input type="text" value={standaloneName} onChange={e => setStandaloneName(e.target.value)} placeholder="输入名称，如：学吉他、备考雅思..." className="input-field" autoFocus />
+                </div>
               ) : (
                 <div className="max-h-52 overflow-y-auto rounded-xl p-2" style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--whisper-border)' }}>
                   {availableCategories.length === 0 ? (
                     <p className="text-xs py-3 text-center" style={{ color: 'var(--slate-ghost)' }}>所有分类都已添加计时日</p>
                   ) : (
-                    <CategoryTreePicker
-                      categories={categories}
-                      availableCategories={availableCategories}
-                      selectedId={selectedCatId}
-                      onSelect={setSelectedCatId}
-                      parentId={null}
-                      level={0}
-                    />
+                    <CategoryTreePicker categories={categories} availableCategories={availableCategories} selectedId={selectedCatId} onSelect={setSelectedCatId} parentId={null} level={0} />
                   )}
                 </div>
               )}
             </div>
           )}
 
+          {/* 颜色选择器 - 直接添加 或 编辑独立项时显示 */}
+          {(standaloneMode || (editId && !categories.find(c => c.id === editId)?.parentId)) && (
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}><Palette size={14} /> 颜色</label>
+              <div className="flex items-center gap-2 flex-wrap">
+                {PRESET_COLORS.map(c => (
+                  <button key={c} onClick={() => setStandaloneColor(c)} className="w-7 h-7 rounded-full transition-all duration-150"
+                    style={{ backgroundColor: c, boxShadow: standaloneColor === c ? `0 0 0 2px var(--deep-void), 0 0 0 3px ${c}` : 'none', transform: standaloneColor === c ? 'scale(1.15)' : 'scale(1)' }} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 日期 */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>
-              <Calendar size={14} />
-              {mode === 'countup' ? '起始日期' : '目标日期'}
-            </label>
-            <input
-              type="date"
-              value={dateValue}
-              onChange={e => setDateValue(e.target.value)}
-              className="input-field"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            />
+            <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}><Calendar size={14} /> {mode === 'countup' ? '起始日期' : '目标日期'}</label>
+            <input type="date" value={dateValue} onChange={e => setDateValue(e.target.value)} className="input-field" style={{ fontFamily: "'JetBrains Mono', monospace" }} />
           </div>
 
           {/* 备注 */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>
-              <StickyNote size={14} />
-              备注（可选）
-            </label>
-            <input
-              type="text"
-              value={noteValue}
-              onChange={e => setNoteValue(e.target.value)}
-              placeholder="添加一句备注..."
-              className="input-field"
-            />
+            <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}><StickyNote size={14} /> 备注（可选）</label>
+            <input type="text" value={noteValue} onChange={e => setNoteValue(e.target.value)} placeholder="添加一句备注..." className="input-field" />
           </div>
 
-          <button
-            onClick={handleSave}
-            disabled={!dateValue || (!standaloneMode && !selectedCatId) || (standaloneMode && !standaloneName.trim())}
-            className="btn-primary flex items-center gap-2 px-4 py-2.5 text-sm w-full justify-center"
-          >
-            <Check size={15} />
-            {editId ? '保存修改' : '确认添加'}
+          <button onClick={handleSave} disabled={!dateValue || (!standaloneMode && !selectedCatId) || (standaloneMode && !standaloneName.trim())}
+            className="btn-primary flex items-center gap-2 px-4 py-2.5 text-sm w-full justify-center">
+            <Check size={15} /> {editId ? '保存修改' : '确认添加'}
           </button>
         </div>
       )}
 
-      {/* 计时日列表 - 按分类分组 */}
-      {hasAny ? (
-        <div className="space-y-2">
-          {Array.from(groups.entries()).map(([parentId, items]) => {
-            const parent = parentId ? categories.find(c => c.id === parentId) : null
-            return (
-              <RevealSection key={parentId || '__root'} delay={40}>
-                <CategoryGroup
-                  parent={parent ? { name: parent.name, color: parent.color } : null}
-                  children={items}
-                  now={now}
-                  entries={entries}
-                  allCategories={categories}
-                  onEdit={startEdit}
-                  onRemove={handleRemove}
-                  onTogglePin={handleTogglePin}
-                />
-              </RevealSection>
-            )
-          })}
-        </div>
-      ) : (
+      {/* ─── 正数日区域 ─── */}
+      {countupItems.length > 0 && (
+        <RevealSection delay={40}>
+          <div className="space-y-3">
+            <h3 className="section-title flex items-center gap-2">
+              <ArrowUpCircle size={14} style={{ color: '#E8941A' }} />
+              正数日 · 已经过去
+              <span className="text-[11px] font-normal ml-auto" style={{ color: 'var(--slate-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>{countupItems.length}</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {countupItems.map(({ category, totalDays }) => (
+                <CountUpCard key={category.id} category={category} totalDays={totalDays} now={now} entries={entries} allCategories={categories}
+                  onEdit={() => startEdit(category)} onRemove={() => handleRemove(category.id)} onTogglePin={() => handleTogglePin(category)} />
+              ))}
+            </div>
+          </div>
+        </RevealSection>
+      )}
+
+      {/* ─── 倒数日区域 ─── */}
+      {countdownItems.length > 0 && (
+        <RevealSection delay={60}>
+          <div className="space-y-3">
+            <h3 className="section-title flex items-center gap-2">
+              <ArrowDownCircle size={14} style={{ color: '#4ECDC4' }} />
+              倒数日 · 即将到来
+              <span className="text-[11px] font-normal ml-auto" style={{ color: 'var(--slate-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>{countdownItems.length}</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {countdownItems.map(({ category, totalDays }) => (
+                <CountDownCard key={category.id} category={category} totalDays={totalDays} now={now} entries={entries} allCategories={categories}
+                  onEdit={() => startEdit(category)} onRemove={() => handleRemove(category.id)} onTogglePin={() => handleTogglePin(category)} />
+              ))}
+            </div>
+          </div>
+        </RevealSection>
+      )}
+
+      {/* 空状态 */}
+      {!hasAny && (
         <RevealSection delay={60}>
           <div className="p-12 text-center" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
             <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-5" style={{ background: 'var(--ember-soft)' }}>
               <Timer size={28} style={{ color: 'var(--ember-glow)' }} />
             </div>
-            <h3 className="text-lg font-bold mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}>
-              还没有计时日
-            </h3>
-            <p className="text-sm max-w-sm mx-auto mb-5" style={{ color: 'var(--silver-mist)' }}>
-              记录你坚持一件事已经多久，或倒数某个重要目标的到来
-            </p>
-            <button
-              onClick={() => { resetForm(); setShowForm(true) }}
-              className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm mx-auto"
-            >
-              <Plus size={15} />
-              添加计时日
+            <h3 className="text-lg font-bold mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--bright-chalk)' }}>还没有计时日</h3>
+            <p className="text-sm max-w-sm mx-auto mb-5" style={{ color: 'var(--silver-mist)' }}>记录你坚持一件事已经多久，或倒数某个重要目标的到来</p>
+            <button onClick={() => { resetForm(); setShowForm(true) }} className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm mx-auto">
+              <Plus size={15} /> 添加计时日
             </button>
           </div>
         </RevealSection>
