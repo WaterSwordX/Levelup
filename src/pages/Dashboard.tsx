@@ -1,6 +1,6 @@
 import type { Category, TimeEntry, Goal, Milestone } from '../types'
 import { getTopCategories, getCategoryTotalTime, getCategoryPath, getGoalForCategory } from '../store'
-import { Clock, TrendingUp, Calendar, Target, Award, Rocket, Flame, BarChart3, Zap, ChevronRight } from 'lucide-react'
+import { Clock, TrendingUp, Calendar, Target, Award, Rocket, Flame, BarChart3, Zap, ChevronRight, CalendarDays } from 'lucide-react'
 import MilestoneCard from '../components/MilestoneCard'
 import RevealSection from '../components/RevealSection'
 import TiltCard from '../components/TiltCard'
@@ -181,6 +181,67 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
           <StatCard key={item.label} item={item} index={i} />
         ))}
       </div>
+
+      {/* 计时日小卡片 */}
+      {(() => {
+        const countdownCats = categories
+          .filter(c => c.showCountdown && (c.startDate || c.targetDate))
+          .map(c => {
+            const isCountdown = c.countdownMode === 'countdown'
+            const dateStr = isCountdown ? c.targetDate! : c.startDate!
+            const d = new Date(dateStr + 'T00:00:00')
+            const diffMs = now.getTime() - d.getTime()
+            const days = Math.abs(Math.floor(diffMs / (1000 * 60 * 60 * 24)))
+            return { cat: c, days, isCountdown }
+          })
+          .sort((a, b) => (a.cat.pinned ? 0 : 1) - (b.cat.pinned ? 0 : 1) || b.days - a.days)
+          .slice(0, 4)
+        if (countdownCats.length === 0) return null
+        return (
+          <RevealSection delay={60}>
+            <div className="space-y-2.5">
+              <h3 className="section-title flex items-center gap-2">
+                <CalendarDays size={13} style={{ color: '#E8941A' }} />
+                计时日
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {countdownCats.map(({ cat, days, isCountdown }) => (
+                  <div
+                    key={cat.id}
+                    className="p-3.5 rounded-xl relative overflow-hidden"
+                    style={{
+                      background: `linear-gradient(145deg, ${cat.color}12, ${cat.color}05)`,
+                      border: `1px solid ${cat.color}18`,
+                    }}
+                  >
+                    <div
+                      className="absolute -right-1 -top-3 text-[60px] font-black leading-none select-none pointer-events-none"
+                      style={{ fontFamily: "'JetBrains Mono', monospace", color: `${cat.color}08` }}
+                    >
+                      {days}
+                    </div>
+                    <div className="relative">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                        <span className="text-xs font-medium truncate" style={{ color: 'var(--bright-chalk)' }}>{cat.name}</span>
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-black" style={{ fontFamily: "'JetBrains Mono', monospace", color: cat.color }}>
+                          {days}
+                        </span>
+                        <span className="text-xs" style={{ color: 'var(--silver-mist)' }}>天</span>
+                        {isCountdown && (
+                          <span className="text-[9px] ml-1 px-1 py-0.5 rounded" style={{ background: `${cat.color}20`, color: cat.color }}>倒数</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </RevealSection>
+        )
+      })()}
 
       {/* Today's insights row */}
       <RevealSection delay={80}>

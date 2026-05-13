@@ -4,8 +4,12 @@ export interface Category {
   parentId: string | null
   color: string
   createdAt: string
-  startDate?: string // YYYY-MM-DD 用户自选的起始时间
-  showCountdown?: boolean // 是否在看板显示倒数日卡片
+  startDate?: string // YYYY-MM-DD 正数日：从此日期开始计数
+  targetDate?: string // YYYY-MM-DD 倒数日：目标日期
+  showCountdown?: boolean // 是否显示计时日
+  countdownMode?: 'countup' | 'countdown' // 正数 or 倒数
+  pinned?: boolean // 置顶
+  note?: string // 备注
 }
 
 export interface TimeEntry {

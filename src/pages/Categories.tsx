@@ -3,7 +3,7 @@ import type { Category, TimeEntry, Goal } from '../types'
 import { saveCategories, saveGoals, getGoalForCategory, getCategoryTotalTime, PRESET_COLORS } from '../store'
 import CategoryTree from '../components/CategoryTree'
 import RevealSection from '../components/RevealSection'
-import { Plus, Pencil, Trash2, FolderPlus, Target, X, Check, Calendar, Timer } from 'lucide-react'
+import { Plus, Pencil, Trash2, FolderPlus, Target, X, Check } from 'lucide-react'
 
 interface Props {
   categories: Category[]
@@ -20,8 +20,6 @@ export default function Categories({ categories, entries, setCategories, goals, 
   const [name, setName] = useState('')
   const [color, setColor] = useState(PRESET_COLORS[0])
   const [goalHours, setGoalHours] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [showCountdown, setShowCountdown] = useState(false)
 
   const handleAdd = () => {
     if (!name.trim()) return
@@ -31,29 +29,23 @@ export default function Categories({ categories, entries, setCategories, goals, 
       parentId: showAdd === 'top' ? null : showAdd,
       color,
       createdAt: new Date().toISOString(),
-      startDate: startDate || undefined,
-      showCountdown: showCountdown || undefined,
     }
     const updated = [...categories, newCat]
     setCategories(updated)
     saveCategories(updated)
     setName('')
-    setStartDate('')
-    setShowCountdown(false)
     setShowAdd(null)
   }
 
   const handleEdit = () => {
     if (!name.trim() || !editId) return
     const updated = categories.map(c =>
-      c.id === editId ? { ...c, name: name.trim(), color, startDate: startDate || undefined, showCountdown: showCountdown || undefined } : c
+      c.id === editId ? { ...c, name: name.trim(), color } : c
     )
     setCategories(updated)
     saveCategories(updated)
     setEditId(null)
     setName('')
-    setStartDate('')
-    setShowCountdown(false)
   }
 
   const handleDelete = (id: string) => {
@@ -104,8 +96,6 @@ export default function Categories({ categories, entries, setCategories, goals, 
     setEditId(cat.id)
     setName(cat.name)
     setColor(cat.color)
-    setStartDate(cat.startDate || '')
-    setShowCountdown(cat.showCountdown || false)
     setShowAdd(null)
     setGoalCatId(null)
   }
@@ -116,8 +106,6 @@ export default function Categories({ categories, entries, setCategories, goals, 
     setGoalHours(existing ? String(existing.targetMinutes / 60) : '')
     setShowAdd(null)
     setEditId(null)
-    setStartDate('')
-    setShowCountdown(false)
   }
 
   const cancelForm = () => {
@@ -125,8 +113,6 @@ export default function Categories({ categories, entries, setCategories, goals, 
     setEditId(null)
     setGoalCatId(null)
     setName('')
-    setStartDate('')
-    setShowCountdown(false)
   }
 
   return (
@@ -239,54 +225,6 @@ export default function Categories({ categories, entries, setCategories, goals, 
                     }}
                   />
                 ))}
-              </div>
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>
-                  <Calendar size={14} />
-                  起始时间（可选）
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={e => setStartDate(e.target.value)}
-                  className="input-field"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                />
-                <p className="text-[11px] mt-1.5" style={{ color: 'var(--slate-ghost)' }}>
-                  选择你实际开始学习/练习此技能的日期，用于计算已持续时间
-                </p>
-              </div>
-              <div
-                className="flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200"
-                style={{
-                  background: showCountdown ? 'var(--ember-soft)' : 'rgba(255,255,255,0.02)',
-                  border: showCountdown ? '1px solid rgba(232,148,26,0.2)' : '1px solid var(--whisper-border)',
-                }}
-                onClick={() => setShowCountdown(!showCountdown)}
-              >
-                <div className="flex items-center gap-2">
-                  <Timer size={14} style={{ color: showCountdown ? '#E8941A' : 'var(--slate-ghost)' }} />
-                  <div>
-                    <span className="text-sm" style={{ color: showCountdown ? 'var(--bright-chalk)' : 'var(--silver-mist)' }}>
-                      倒数日卡片
-                    </span>
-                    <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
-                      在看板显示已持续天数
-                    </p>
-                  </div>
-                </div>
-                <div
-                  className="w-10 h-5 rounded-full transition-all duration-200 relative"
-                  style={{ background: showCountdown ? '#E8941A' : 'var(--slate-surface)' }}
-                >
-                  <div
-                    className="absolute top-0.5 w-4 h-4 rounded-full transition-all duration-200"
-                    style={{
-                      background: 'white',
-                      left: showCountdown ? '22px' : '2px',
-                    }}
-                  />
-                </div>
               </div>
               <button
                 onClick={editId ? handleEdit : handleAdd}
