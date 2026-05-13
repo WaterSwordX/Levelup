@@ -1,6 +1,6 @@
 import type { Category, TimeEntry, Goal, Milestone } from '../types'
 import { getTopCategories, getCategoryTotalTime, getCategoryPath, getGoalForCategory } from '../store'
-import { Clock, TrendingUp, Calendar, Target, Award, Rocket, Flame, BarChart3, Zap, ChevronRight } from 'lucide-react'
+import { Clock, TrendingUp, Calendar, Target, Award, Rocket, Flame, BarChart3, Zap, ChevronRight, Timer } from 'lucide-react'
 import MilestoneCard from '../components/MilestoneCard'
 import RevealSection from '../components/RevealSection'
 import TiltCard from '../components/TiltCard'
@@ -128,6 +128,17 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
   const recentMilestones = [...milestones]
     .sort((a, b) => new Date(b.achievedAt).getTime() - new Date(a.achievedAt).getTime())
     .slice(0, 3)
+
+  // 倒数日分类
+  const countdownCategories = categories
+    .filter(c => c.showCountdown && c.startDate)
+    .map(c => {
+      const start = new Date(c.startDate + 'T00:00:00')
+      const diffMs = now.getTime() - start.getTime()
+      const days = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)))
+      return { category: c, days, startDate: start }
+    })
+    .sort((a, b) => b.days - a.days)
 
   const fmtDate = (d: Date) => `${d.getMonth() + 1}月${d.getDate()}日`
   const weekRange = `${fmtDate(weekStart)} — ${fmtDate(weekEnd)}`
@@ -283,6 +294,62 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                       allCategories={categories}
                     />
                   </div>
+                )
+              })}
+            </div>
+          </div>
+        </RevealSection>
+      )}
+
+      {/* Countdown Days */}
+      {countdownCategories.length > 0 && (
+        <RevealSection delay={130}>
+          <div className="space-y-3">
+            <h3 className="section-title flex items-center gap-2">
+              <Timer size={13} style={{ color: '#E8941A' }} />
+              已持续
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {countdownCategories.map(({ category, days, startDate }) => {
+                const total = getCategoryTotalTime(category.id, entries, categories)
+                return (
+                  <TiltCard
+                    key={category.id}
+                    className="p-5 animate-fade-in-up"
+                    style={{
+                      background: `linear-gradient(135deg, ${category.color}12, ${category.color}06)`,
+                      border: `1px solid ${category.color}30`,
+                    }}
+                  >
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <span
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: category.color, boxShadow: `0 0 8px ${category.color}60` }}
+                      />
+                      <span className="text-sm font-semibold truncate" style={{ color: 'var(--bright-chalk)' }}>
+                        {category.name}
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5 mb-2">
+                      <span
+                        className="text-3xl font-bold"
+                        style={{ fontFamily: "'JetBrains Mono', monospace", color: category.color }}
+                      >
+                        {days}
+                      </span>
+                      <span className="text-sm" style={{ color: 'var(--silver-mist)' }}>天</span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
+                        {startDate.getFullYear()}年{startDate.getMonth() + 1}月{startDate.getDate()}日 至今
+                      </p>
+                      {total > 0 && (
+                        <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
+                          累计练习 {formatMinutes(total)}
+                        </p>
+                      )}
+                    </div>
+                  </TiltCard>
                 )
               })}
             </div>

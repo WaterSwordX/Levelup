@@ -392,7 +392,7 @@ export default function SyncSettings({ currentData }: Props) {
               </button>
             </div>
             <p className="text-[11px]" style={{ color: 'var(--slate-ghost)' }}>
-              提示：在设备 A 点「推送到云端」，在设备 B 点「从云端拉取」即可同步
+              数据变更后会自动推送到云端（约 5 秒延迟），也可手动推送/拉取
             </p>
             <button
               onClick={async () => {

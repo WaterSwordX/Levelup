@@ -56,7 +56,7 @@ function CategoryNode({ category, categories, entries, onSelect, selectedId, lev
   showTime: boolean
   renderActions?: (category: Category) => ReactNode
 }) {
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(false)
   const children = getChildCategories(category.id, categories)
   const totalTime = getCategoryTotalTime(category.id, entries, categories)
   const hasChildren = children.length > 0

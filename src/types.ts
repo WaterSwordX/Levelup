@@ -4,6 +4,8 @@ export interface Category {
   parentId: string | null
   color: string
   createdAt: string
+  startDate?: string // YYYY-MM-DD 用户自选的起始时间
+  showCountdown?: boolean // 是否在看板显示倒数日卡片
 }
 
 export interface TimeEntry {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
@@ -10,18 +10,23 @@ import Guide from './pages/Guide'
 import Settings from './pages/Settings'
 import type { Category, TimeEntry, Goal, Milestone } from './types'
 import { loadCategories, loadEntries, loadGoals, loadMilestones, saveMilestones, detectNewMilestones, getCategoryTotalTime } from './store'
+import { isSyncConfigured, syncToCloud } from './sync'
 
 export default function App() {
   const [categories, setCategories] = useState<Category[]>([])
   const [entries, setEntries] = useState<TimeEntry[]>([])
   const [goals, setGoals] = useState<Goal[]>([])
   const [milestones, setMilestones] = useState<Milestone[]>([])
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const initialLoadDone = useRef(false)
 
   useEffect(() => {
     setCategories(loadCategories())
     setEntries(loadEntries())
     setGoals(loadGoals())
     setMilestones(loadMilestones())
+    // 延迟标记初始加载完成，避免首次加载触发自动同步
+    setTimeout(() => { initialLoadDone.current = true }, 1000)
   }, [])
 
   // 检测新里程碑
@@ -54,6 +59,24 @@ export default function App() {
     setEntries(newEntries)
     checkMilestones(newEntries)
   }, [checkMilestones])
+
+  // 自动推送到云端（debounce 5 秒）
+  useEffect(() => {
+    if (!initialLoadDone.current) return
+    if (!isSyncConfigured()) return
+
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current)
+    syncTimerRef.current = setTimeout(() => {
+      const data = { categories, entries, goals, milestones, syncedAt: new Date().toISOString() }
+      syncToCloud(data).catch(err => {
+        console.warn('[AutoSync] 推送失败:', err.message)
+      })
+    }, 5000)
+
+    return () => {
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current)
+    }
+  }, [categories, entries, goals, milestones])
 
   return (
     <BrowserRouter>
