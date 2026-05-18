@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react'
 import type { Category, TimeEntry, Goal, Milestone } from '../types'
 import { MILESTONE_TIERS } from '../types'
-import { getTopCategories, getCategoryTotalTime, getCategoryPath, getGoalForCategory } from '../store'
-import { Clock, TrendingUp, Calendar, Target, Award, Rocket, Flame, BarChart3, Zap, ChevronRight, CalendarDays } from 'lucide-react'
+import { getTopCategories, getCategoryTotalTime, getCategoryPath, getGoalForCategory, loadDashboardSections, saveDashboardSections } from '../store'
+import type { DashboardSections } from '../store'
+import { Clock, TrendingUp, Calendar, Target, Award, Rocket, Flame, BarChart3, Zap, ChevronRight, CalendarDays, Settings, Eye, EyeOff } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import MilestoneCard from '../components/MilestoneCard'
 import RevealSection from '../components/RevealSection'
@@ -63,6 +65,34 @@ function StatCard({ item, index }: { item: { label: string; value: number; icon:
 }
 
 export default function Dashboard({ categories, entries, goals, milestones }: Props) {
+  const [sections, setSections] = useState<DashboardSections>(loadDashboardSections)
+  const [customizing, setCustomizing] = useState(false)
+
+  useEffect(() => { saveDashboardSections(sections) }, [sections])
+
+  const toggleSection = (key: keyof DashboardSections) => {
+    setSections(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  // 辅助：区块标题 + 可见性切换
+  const SectionToggle = ({ sectionKey, children }: { sectionKey: keyof DashboardSections; children: React.ReactNode }) => (
+    <div className="flex items-center gap-2">
+      {children}
+      {customizing && (
+        <button
+          onClick={() => toggleSection(sectionKey)}
+          className="p-0.5 rounded transition-colors duration-150"
+          style={{ color: 'var(--slate-ghost)' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--silver-mist)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)' }}
+          title={sections[sectionKey] ? '隐藏此区块' : '显示此区块'}
+        >
+          {sections[sectionKey] ? <Eye size={13} /> : <EyeOff size={13} />}
+        </button>
+      )}
+    </div>
+  )
+
   const topCategories = getTopCategories(categories).filter(c => !c.showCountdown && !c.standalone)
   const now = new Date()
   const today = now.toISOString().split('T')[0]
@@ -190,7 +220,26 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               {fmtDate(now)} 周{WEEKDAYS[now.getDay()]} · {weekRange}
             </p>
           </div>
+          <button
+            onClick={() => setCustomizing(!customizing)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-all duration-200 ${
+              customizing ? 'ring-1' : ''
+            }`}
+            style={{
+              color: customizing ? 'var(--ember-glow)' : 'var(--slate-ghost)',
+              background: customizing ? 'var(--ember-soft)' : 'transparent',
+              ringColor: customizing ? 'var(--ember-ghost)' : 'transparent',
+            }}
+          >
+            <Settings size={13} />
+            {customizing ? '完成' : '自定义看板'}
+          </button>
         </div>
+        {customizing && (
+          <p className="text-[11px] mt-2" style={{ color: 'var(--slate-ghost)' }}>
+            点击区块标题旁的眼睛图标来显示或隐藏该区块
+          </p>
+        )}
       </RevealSection>
 
       {/* Overview cards */}
@@ -201,7 +250,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       </div>
 
       {/* 计时日小卡片 */}
-      {(() => {
+      {sections.countdowns && (() => {
         const countdownCats = categories
           .filter(c => c.showCountdown && (c.startDate || c.targetDate))
           .map(c => {
@@ -220,7 +269,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
             <div className="space-y-2.5">
               <h3 className="section-title flex items-center gap-2">
                 <CalendarDays size={13} style={{ color: '#E8941A' }} />
-                计时日
+                <SectionToggle sectionKey="countdowns">计时日</SectionToggle>
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {countdownCats.map(({ cat, days, isCountdown }) => (
@@ -262,8 +311,14 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       })()}
 
       {/* Today's insights row */}
+      {sections.insights && (
       <RevealSection delay={80}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="space-y-3">
+          <h3 className="section-title flex items-center gap-2">
+            <BarChart3 size={13} style={{ color: '#4ECDC4' }} />
+            <SectionToggle sectionKey="insights">今日数据</SectionToggle>
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Yesterday comparison */}
           <div className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
             <div className="flex items-center gap-2 mb-2.5">
@@ -339,15 +394,17 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
             )}
           </div>
         </div>
+        </div>
       </RevealSection>
+      )}
 
       {/* Milestones */}
-      {tieredMilestones.length > 0 && (
+      {sections.milestones && tieredMilestones.length > 0 && (
         <RevealSection delay={150}>
           <div className="space-y-4">
             <h3 className="section-title flex items-center gap-2">
               <Award size={13} style={{ color: '#A78BFA' }} />
-              里程碑
+              <SectionToggle sectionKey="milestones">里程碑</SectionToggle>
             </h3>
             {tieredMilestones.map(({ tier, items }) => (
               <div key={tier.label} className="space-y-2">
@@ -385,12 +442,12 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       )}
 
       {/* Goals */}
-      {categoriesWithGoals.length > 0 && (
+      {sections.goals && categoriesWithGoals.length > 0 && (
         <RevealSection delay={120}>
           <div className="space-y-3">
             <h3 className="section-title flex items-center gap-2">
               <Target size={13} style={{ color: '#4ECDC4' }} />
-              目标进度
+              <SectionToggle sectionKey="goals">目标进度</SectionToggle>
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {categoriesWithGoals.map(({ cat, goal, total }) => {
@@ -448,12 +505,12 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       )}
 
       {/* All skills overview */}
-      {topCategories.length > 0 && (
+      {sections.skills && topCategories.length > 0 && (
         <RevealSection delay={80}>
           <div className="space-y-3">
             <h3 className="section-title flex items-center gap-2">
               <ChevronRight size={13} style={{ color: 'var(--slate-ghost)' }} />
-              技能总览
+              <SectionToggle sectionKey="skills">技能总览</SectionToggle>
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {topCategories.map(cat => {
@@ -521,10 +578,13 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       )}
 
       {/* Recent entries */}
-      {recentEntries.length > 0 && (
+      {sections.recent && recentEntries.length > 0 && (
         <RevealSection delay={80}>
           <div className="space-y-3">
-            <h3 className="section-title">最近记录</h3>
+            <h3 className="section-title flex items-center gap-2">
+              <span>最近记录</span>
+              <SectionToggle sectionKey="recent"><span /></SectionToggle>
+            </h3>
             <div style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
               <div className="divide-y" style={{ borderColor: 'var(--whisper-border)' }}>
                 {recentEntries.map((entry, i) => {

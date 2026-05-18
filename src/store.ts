@@ -6,6 +6,40 @@ const ENTRIES_KEY = 'skill-tracker-entries'
 const GOALS_KEY = 'skill-tracker-goals'
 const MILESTONES_KEY = 'skill-tracker-milestones'
 const CUSTOM_MILESTONES_KEY = 'skill-tracker-custom-milestones'
+const DASHBOARD_SECTIONS_KEY = 'skill-tracker-dashboard-sections'
+
+export interface DashboardSections {
+  countdowns: boolean
+  insights: boolean
+  milestones: boolean
+  goals: boolean
+  skills: boolean
+  recent: boolean
+}
+
+const DEFAULT_DASHBOARD_SECTIONS: DashboardSections = {
+  countdowns: true,
+  insights: true,
+  milestones: true,
+  goals: true,
+  skills: true,
+  recent: true,
+}
+
+export function loadDashboardSections(): DashboardSections {
+  try {
+    const raw = localStorage.getItem(DASHBOARD_SECTIONS_KEY)
+    if (raw) {
+      const saved = JSON.parse(raw)
+      return { ...DEFAULT_DASHBOARD_SECTIONS, ...saved }
+    }
+  } catch { /* ignore */ }
+  return { ...DEFAULT_DASHBOARD_SECTIONS }
+}
+
+export function saveDashboardSections(sections: DashboardSections) {
+  localStorage.setItem(DASHBOARD_SECTIONS_KEY, JSON.stringify(sections))
+}
 
 export function loadCategories(): Category[] {
   const raw = localStorage.getItem(CATEGORIES_KEY)

@@ -1,10 +1,11 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Category, TimeEntry, Goal, CategoryMilestoneConfig } from '../types'
 import { saveCategories, saveGoals, getGoalForCategory, getCategoryTotalTime, PRESET_COLORS, saveCustomMilestoneConfigs } from '../store'
 import ColorPicker from '../components/ColorPicker'
 import CategoryTree from '../components/CategoryTree'
 import RevealSection from '../components/RevealSection'
-import { Plus, Pencil, Trash2, FolderPlus, Target, X, Check } from 'lucide-react'
+import { Plus, Pencil, Trash2, FolderPlus, Target, X, Check, Award } from 'lucide-react'
 
 interface Props {
   categories: Category[]
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function Categories({ categories, entries, setCategories, goals, setGoals, customConfigs, setCustomConfigs }: Props) {
+  const navigate = useNavigate()
   const [showAdd, setShowAdd] = useState<'top' | string | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
   const [goalCatId, setGoalCatId] = useState<string | null>(null)
@@ -257,6 +259,16 @@ export default function Categories({ categories, entries, setCategories, goals, 
                         {percent.toFixed(0)}%
                       </span>
                     )}
+                    <button
+                      onClick={() => navigate(`/category/${cat.id}`)}
+                      className="p-1.5 rounded-md transition-colors duration-150"
+                      style={{ color: 'var(--slate-ghost)' }}
+                      title="查看详情与里程碑"
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--slate-surface)'; e.currentTarget.style.color = '#A78BFA' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-ghost)' }}
+                    >
+                      <Award size={13} />
+                    </button>
                     <button
                       onClick={() => startGoal(cat)}
                       className="p-1.5 rounded-md transition-colors duration-150"
