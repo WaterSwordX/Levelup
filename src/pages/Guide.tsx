@@ -1,4 +1,4 @@
-import { FolderTree, PenLine, Timer, BarChart3, Target, Award, Download, Clock, LayoutDashboard, Lightbulb, Share2, Flame, Calendar } from 'lucide-react'
+import { FolderTree, PenLine, Timer, BarChart3, Target, Award, Download, Clock, LayoutDashboard, Lightbulb, Share2 } from 'lucide-react'
 import RevealSection from '../components/RevealSection'
 
 const sections = [
@@ -11,6 +11,7 @@ const sections = [
       '鼠标悬停在分类上，点击「+」图标可添加子分类，支持无限细分',
       '例如：音乐 → 编曲 → 混音 → 人声处理',
       '每个分类可设置颜色，方便视觉区分',
+      '悬停时点击奖杯图标可跳转详情页，查看里程碑和分享卡片',
       '点击「编辑」可修改名称和颜色，点击「删除」会同时删除所有子分类',
     ],
   },
@@ -55,16 +56,16 @@ const sections = [
   },
   {
     icon: LayoutDashboard,
-    title: '看板',
+    title: '看板与自定义',
     color: '#E8941A',
     steps: [
       '首页「看板」展示你的整体数据概览',
       '顶部五张卡片：今日、本周、本月、连击天数、总计投入时间',
       '「连击」卡片显示你连续打卡的天数——今天只要有记录，连击就不会断',
       '即便今天只练了 5 分钟，连击依然在，这在心理学上比总时长更能促进行为坚持',
-      '目标进度：显示所有设定目标的完成情况',
-      '技能总览：各大类的累计时间和进度条，点击跳转详情页',
-      '最近记录：最新 8 条时间记录',
+      '点击右上角「自定义看板」进入编辑模式，可自由显示/隐藏各个区块',
+      '可控制的区块：计时日、今日数据、里程碑、目标进度、技能总览、最近记录',
+      '点击眼睛图标切换显示/隐藏，配置自动保存——打造属于你自己的看板',
     ],
   },
   {
@@ -97,9 +98,11 @@ const sections = [
     color: '#A78BFA',
     steps: [
       '当某个技能累计达到特定时间（1h、10h、50h、100h、200h、500h、1000h 等）时，自动生成成就卡片',
-      '成就卡片显示在看板页面的「最近达成的里程碑」区域',
-      '卡片包含：技能名、累计时间、时间范围、关键事件',
-      '点击「保存为图片」可导出 PNG 图片，用于分享或留念',
+      '在看板「里程碑」区块和分类详情页均可查看成就卡片',
+      '从分类页点击分类旁的奖杯图标，可直接跳转到该分类的里程碑时间轴',
+      '进入分类详情页后，可在「自定义里程碑」区域为该技能单独设定专属阈值',
+      '例如：给「钢琴」单独设定 60h、150h、365h 的里程碑',
+      '每张成就卡片都支持「保存为图片」导出 PNG，方便分享或留念',
     ],
   },
   {
@@ -204,6 +207,10 @@ export default function Guide() {
             <li className="flex items-start gap-2">
               <span style={{ color: '#E8941A' }}>·</span>
               给技能设置「开始日期」，看坚持了多少天，会很有成就感
+            </li>
+            <li className="flex items-start gap-2">
+              <span style={{ color: '#E8941A' }}>·</span>
+              善用「自定义看板」功能，只保留你关心的区块，让看板更清爽
             </li>
             <li className="flex items-start gap-2">
               <span style={{ color: '#E8941A' }}>·</span>
