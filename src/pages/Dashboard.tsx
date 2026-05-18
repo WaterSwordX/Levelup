@@ -222,13 +222,11 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
           </div>
           <button
             onClick={() => setCustomizing(!customizing)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-all duration-200 ${
-              customizing ? 'ring-1' : ''
-            }`}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-all duration-200 hover:bg-[var(--slate-surface)]"
             style={{
               color: customizing ? 'var(--ember-glow)' : 'var(--slate-ghost)',
               background: customizing ? 'var(--ember-soft)' : 'transparent',
-              ringColor: customizing ? 'var(--ember-ghost)' : 'transparent',
+              border: customizing ? '1px solid var(--ember-ghost)' : '1px solid transparent',
             }}
           >
             <Settings size={13} />
