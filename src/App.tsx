@@ -9,8 +9,9 @@ import Stats from './pages/Stats'
 import Guide from './pages/Guide'
 import Settings from './pages/Settings'
 import Days from './pages/Days'
-import type { Category, TimeEntry, Goal, Milestone } from './types'
-import { loadCategories, loadEntries, loadGoals, loadMilestones, saveMilestones, detectNewMilestones, getCategoryTotalTime, getTheme } from './store'
+import CategoryDetail from './pages/CategoryDetail'
+import type { Category, TimeEntry, Goal, Milestone, CategoryMilestoneConfig } from './types'
+import { loadCategories, loadEntries, loadGoals, loadMilestones, saveMilestones, detectNewMilestones, getCategoryTotalTime, getTheme, loadCustomMilestoneConfigs, getCustomMilestonesForCategory } from './store'
 import { isSyncConfigured, syncToCloud } from './sync'
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
   const [entries, setEntries] = useState<TimeEntry[]>([])
   const [goals, setGoals] = useState<Goal[]>([])
   const [milestones, setMilestones] = useState<Milestone[]>([])
+  const [customConfigs, setCustomConfigs] = useState<CategoryMilestoneConfig[]>([])
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initialLoadDone = useRef(false)
 
@@ -26,6 +28,7 @@ export default function App() {
     setEntries(loadEntries())
     setGoals(loadGoals())
     setMilestones(loadMilestones())
+    setCustomConfigs(loadCustomMilestoneConfigs())
     // 应用主题
     document.documentElement.dataset.theme = getTheme()
     // 延迟标记初始加载完成，避免首次加载触发自动同步
@@ -36,11 +39,13 @@ export default function App() {
   const checkMilestones = useCallback((updatedEntries: TimeEntry[]) => {
     const allCategories = loadCategories()
     const currentMilestones = loadMilestones()
+    const currentCustomConfigs = loadCustomMilestoneConfigs()
     const newMilestones: Milestone[] = []
 
     for (const cat of allCategories) {
       const total = getCategoryTotalTime(cat.id, updatedEntries, allCategories)
-      const newThresholds = detectNewMilestones(cat.id, total, currentMilestones)
+      const customThresholds = getCustomMilestonesForCategory(cat.id, currentCustomConfigs)
+      const newThresholds = detectNewMilestones(cat.id, total, currentMilestones, customThresholds)
       for (const hours of newThresholds) {
         newMilestones.push({
           id: crypto.randomUUID(),
@@ -70,7 +75,7 @@ export default function App() {
 
     if (syncTimerRef.current) clearTimeout(syncTimerRef.current)
     syncTimerRef.current = setTimeout(() => {
-      const data = { categories, entries, goals, milestones, syncedAt: new Date().toISOString() }
+      const data = { categories, entries, goals, milestones, customMilestoneConfigs: customConfigs, syncedAt: new Date().toISOString() }
       syncToCloud(data).catch(err => {
         console.warn('[AutoSync] 推送失败:', err.message)
       })
@@ -79,7 +84,7 @@ export default function App() {
     return () => {
       if (syncTimerRef.current) clearTimeout(syncTimerRef.current)
     }
-  }, [categories, entries, goals, milestones])
+  }, [categories, entries, goals, milestones, customConfigs])
 
   return (
     <BrowserRouter>
@@ -93,6 +98,7 @@ export default function App() {
           <Route path="/days" element={<Days categories={categories} entries={entries} setCategories={setCategories} />} />
           <Route path="/guide" element={<Guide />} />
           <Route path="/settings" element={<Settings currentData={{ categories, entries, goals, milestones }} />} />
+          <Route path="/category/:id" element={<CategoryDetail categories={categories} entries={entries} goals={goals} milestones={milestones} customConfigs={customConfigs} setCustomConfigs={setCustomConfigs} setMilestones={setMilestones} setCategories={setCategories} />} />
         </Route>
       </Routes>
     </BrowserRouter>

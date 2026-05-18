@@ -1,10 +1,11 @@
-import type { Category, TimeEntry, Goal, Milestone } from './types'
+import type { Category, TimeEntry, Goal, Milestone, CategoryMilestoneConfig } from './types'
 import { MILESTONE_THRESHOLDS } from './types'
 
 const CATEGORIES_KEY = 'skill-tracker-categories'
 const ENTRIES_KEY = 'skill-tracker-entries'
 const GOALS_KEY = 'skill-tracker-goals'
 const MILESTONES_KEY = 'skill-tracker-milestones'
+const CUSTOM_MILESTONES_KEY = 'skill-tracker-custom-milestones'
 
 export function loadCategories(): Category[] {
   const raw = localStorage.getItem(CATEGORIES_KEY)
@@ -46,16 +47,45 @@ export function saveMilestones(milestones: Milestone[]) {
   localStorage.setItem(MILESTONES_KEY, JSON.stringify(milestones))
 }
 
+export function loadCustomMilestoneConfigs(): CategoryMilestoneConfig[] {
+  const raw = localStorage.getItem(CUSTOM_MILESTONES_KEY)
+  return raw ? JSON.parse(raw) : []
+}
+
+export function saveCustomMilestoneConfigs(configs: CategoryMilestoneConfig[]) {
+  localStorage.setItem(CUSTOM_MILESTONES_KEY, JSON.stringify(configs))
+}
+
+export function getCustomMilestonesForCategory(categoryId: string, configs: CategoryMilestoneConfig[]): number[] {
+  return configs.find(c => c.categoryId === categoryId)?.customThresholds ?? []
+}
+
+export function saveCustomMilestonesForCategory(categoryId: string, thresholds: number[], configs: CategoryMilestoneConfig[]): CategoryMilestoneConfig[] {
+  const idx = configs.findIndex(c => c.categoryId === categoryId)
+  let updated: CategoryMilestoneConfig[]
+  if (idx >= 0) {
+    updated = configs.map(c => c.categoryId === categoryId ? { ...c, customThresholds: thresholds } : c)
+  } else {
+    updated = [...configs, { categoryId, customThresholds: thresholds }]
+  }
+  saveCustomMilestoneConfigs(updated)
+  return updated
+}
+
 export function detectNewMilestones(
   categoryId: string,
   totalMinutes: number,
-  milestones: Milestone[]
+  milestones: Milestone[],
+  customThresholds?: number[]
 ): number[] {
   const totalHours = totalMinutes / 60
   const achieved = new Set(
     milestones.filter(m => m.categoryId === categoryId).map(m => m.milestoneHours)
   )
-  return MILESTONE_THRESHOLDS.filter(h => totalHours >= h && !achieved.has(h))
+  const thresholds = customThresholds && customThresholds.length > 0
+    ? [...new Set([...MILESTONE_THRESHOLDS, ...customThresholds])].sort((a, b) => a - b)
+    : MILESTONE_THRESHOLDS
+  return thresholds.filter(h => totalHours >= h && !achieved.has(h))
 }
 
 export function getMilestonesForCategory(categoryId: string, milestones: Milestone[]): Milestone[] {
@@ -135,23 +165,26 @@ export function exportAllData() {
     entries: loadEntries(),
     goals: loadGoals(),
     milestones: loadMilestones(),
+    customMilestoneConfigs: loadCustomMilestoneConfigs(),
   }
 }
 
-export function importAllData(data: { categories?: Category[]; entries?: TimeEntry[]; goals?: Goal[]; milestones?: Milestone[] }) {
+export function importAllData(data: { categories?: Category[]; entries?: TimeEntry[]; goals?: Goal[]; milestones?: Milestone[]; customMilestoneConfigs?: CategoryMilestoneConfig[] }) {
   if (data.categories) saveCategories(data.categories)
   if (data.entries) saveEntries(data.entries)
   if (data.goals) saveGoals(data.goals)
   if (data.milestones) saveMilestones(data.milestones)
+  if (data.customMilestoneConfigs) saveCustomMilestoneConfigs(data.customMilestoneConfigs)
 }
 
 // Merge cloud data with local data (union by id, local wins on conflicts)
-export function mergeAllData(cloud: { categories?: Category[]; entries?: TimeEntry[]; goals?: Goal[]; milestones?: Milestone[] }, localOverride?: { categories?: Category[]; entries?: TimeEntry[]; goals?: Goal[]; milestones?: Milestone[] }) {
+export function mergeAllData(cloud: { categories?: Category[]; entries?: TimeEntry[]; goals?: Goal[]; milestones?: Milestone[]; customMilestoneConfigs?: CategoryMilestoneConfig[] }, localOverride?: { categories?: Category[]; entries?: TimeEntry[]; goals?: Goal[]; milestones?: Milestone[]; customMilestoneConfigs?: CategoryMilestoneConfig[] }) {
   const local = localOverride ? {
     categories: localOverride.categories || [],
     entries: localOverride.entries || [],
     goals: localOverride.goals || [],
     milestones: localOverride.milestones || [],
+    customMilestoneConfigs: localOverride.customMilestoneConfigs || [],
   } : exportAllData()
   console.log('[Merge] Local:', { cat: local.categories.length, entries: local.entries.length, goals: local.goals.length })
   console.log('[Merge] Cloud:', { cat: cloud.categories?.length, entries: cloud.entries?.length, goals: cloud.goals?.length })
@@ -163,11 +196,19 @@ export function mergeAllData(cloud: { categories?: Category[]; entries?: TimeEnt
     return Array.from(map.values())
   }
 
+  const mergeByKey = <T extends { categoryId: string }>(localArr: T[], cloudArr: T[]): T[] => {
+    const map = new Map<string, T>()
+    for (const item of cloudArr) map.set(item.categoryId, item)
+    for (const item of localArr) map.set(item.categoryId, item) // local wins on conflict
+    return Array.from(map.values())
+  }
+
   const merged = {
     categories: mergeById(local.categories, cloud.categories || []),
     entries: mergeById(local.entries, cloud.entries || []),
     goals: mergeById(local.goals, cloud.goals || []),
     milestones: mergeById(local.milestones, cloud.milestones || []),
+    customMilestoneConfigs: mergeByKey(local.customMilestoneConfigs || [], cloud.customMilestoneConfigs || []),
   }
 
   console.log('[Merge] Result:', { cat: merged.categories.length, entries: merged.entries.length, goals: merged.goals.length })
@@ -176,6 +217,7 @@ export function mergeAllData(cloud: { categories?: Category[]; entries?: TimeEnt
   saveEntries(merged.entries)
   saveGoals(merged.goals)
   saveMilestones(merged.milestones)
+  saveCustomMilestoneConfigs(merged.customMilestoneConfigs)
 
   // Verify save
   const verify = exportAllData()

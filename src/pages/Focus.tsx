@@ -17,6 +17,7 @@ export default function Focus({ categories, entries, setEntries }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [pendingDuration, setPendingDuration] = useState(0)
   const [description, setDescription] = useState('')
+  const [startTime, setStartTime] = useState('')
 
   const handleTimerFinish = (durationMinutes: number) => {
     setPendingDuration(durationMinutes)
@@ -32,18 +33,21 @@ export default function Focus({ categories, entries, setEntries }: Props) {
       duration: pendingDuration,
       date: new Date().toISOString().split('T')[0],
       createdAt: new Date().toISOString(),
+      startTime: startTime.trim() || undefined,
     }
     const updated = [entry, ...entries]
     setEntries(updated)
     saveEntries(updated)
     setShowForm(false)
     setDescription('')
+    setStartTime('')
     setPendingDuration(0)
   }
 
   const handleDiscard = () => {
     setShowForm(false)
     setDescription('')
+    setStartTime('')
     setPendingDuration(0)
   }
 
@@ -106,6 +110,15 @@ export default function Focus({ categories, entries, setEntries }: Props) {
               placeholder="简要描述本次专注内容"
               className="input-field"
               autoFocus
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>开始时间（可选）</label>
+            <input
+              type="time"
+              value={startTime}
+              onChange={e => setStartTime(e.target.value)}
+              className="input-field"
             />
           </div>
           <div className="flex gap-2">

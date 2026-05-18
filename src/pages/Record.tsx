@@ -23,6 +23,7 @@ export default function Record({ categories, entries, setEntries }: Props) {
   const [description, setDescription] = useState('')
   const [duration, setDuration] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [startTime, setStartTime] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,12 +36,14 @@ export default function Record({ categories, entries, setEntries }: Props) {
       duration: Number(duration),
       date,
       createdAt: new Date().toISOString(),
+      startTime: startTime.trim() || undefined,
     }
     const updated = [entry, ...entries]
     setEntries(updated)
     saveEntries(updated)
     setDescription('')
     setDuration('')
+    setStartTime('')
   }
 
   const handleDelete = (id: string) => {
@@ -85,7 +88,7 @@ export default function Record({ categories, entries, setEntries }: Props) {
                 className="input-field"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>时长（分钟）</label>
                 <input
@@ -101,6 +104,10 @@ export default function Record({ categories, entries, setEntries }: Props) {
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>日期</label>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)} className="input-field" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--silver-mist)' }}>开始时间（可选）</label>
+                <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="input-field" />
               </div>
             </div>
             <button
@@ -156,6 +163,7 @@ export default function Record({ categories, entries, setEntries }: Props) {
                       </div>
                       <div className="text-[11px] mt-0.5" style={{ color: 'var(--slate-ghost)' }}>
                         {getCategoryPath(entry.categoryId, categories)} · {entry.date}
+                        {entry.startTime && ` · ${entry.startTime}`}
                       </div>
                     </div>
                     <button

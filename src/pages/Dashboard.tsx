@@ -1,6 +1,8 @@
 import type { Category, TimeEntry, Goal, Milestone } from '../types'
+import { MILESTONE_TIERS } from '../types'
 import { getTopCategories, getCategoryTotalTime, getCategoryPath, getGoalForCategory } from '../store'
 import { Clock, TrendingUp, Calendar, Target, Award, Rocket, Flame, BarChart3, Zap, ChevronRight, CalendarDays } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import MilestoneCard from '../components/MilestoneCard'
 import RevealSection from '../components/RevealSection'
 import TiltCard from '../components/TiltCard'
@@ -21,7 +23,7 @@ function formatMinutes(min: number): string {
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 
-function StatCard({ item, index }: { item: { label: string; value: number; icon: React.ElementType; color: string }; index: number }) {
+function StatCard({ item, index }: { item: { label: string; value: number; icon: React.ElementType; color: string; unit?: string; sub?: string; display?: string }; index: number }) {
   return (
     <TiltCard
       className="stat-card p-4 animate-fade-in-up"
@@ -42,12 +44,20 @@ function StatCard({ item, index }: { item: { label: string; value: number; icon:
           {item.label}
         </span>
       </div>
-      <div
-        className="text-xl font-bold"
-        style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--bright-chalk)' }}
-      >
-        {formatMinutes(item.value)}
+      <div className="flex items-baseline gap-1">
+        <span
+          className="text-xl font-bold"
+          style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--bright-chalk)' }}
+        >
+          {item.display ?? item.value}
+        </span>
+        {item.unit && (
+          <span className="text-sm font-medium" style={{ color: 'var(--silver-mist)' }}>{item.unit}</span>
+        )}
       </div>
+      {item.sub && (
+        <p className="text-[10px] mt-1" style={{ color: 'var(--slate-ghost)' }}>{item.sub}</p>
+      )}
     </TiltCard>
   )
 }
@@ -125,18 +135,26 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
     })
     .filter(Boolean) as { cat: Category; goal: Goal; total: number }[]
 
-  const recentMilestones = [...milestones]
+  const significantMilestones = milestones
+    .filter(m => m.milestoneHours >= 100)
     .sort((a, b) => new Date(b.achievedAt).getTime() - new Date(a.achievedAt).getTime())
-    .slice(0, 3)
+
+  const tieredMilestones = MILESTONE_TIERS.map(tier => ({
+    tier,
+    items: significantMilestones.filter(
+      m => m.milestoneHours >= tier.minHours && m.milestoneHours <= tier.maxHours
+    ),
+  })).filter(group => group.items.length > 0)
 
   const fmtDate = (d: Date) => `${d.getMonth() + 1}月${d.getDate()}日`
   const weekRange = `${fmtDate(weekStart)} — ${fmtDate(weekEnd)}`
 
   const statCards = [
-    { label: '今日', value: todayMinutes, icon: Calendar, color: '#E8941A' },
-    { label: '本周', value: weekMinutes, icon: TrendingUp, color: '#4ECDC4' },
-    { label: '本月', value: monthMinutes, icon: Clock, color: '#A78BFA' },
-    { label: '总计', value: totalMinutes, icon: Clock, color: '#E86B6B' },
+    { label: '今日', value: todayMinutes, icon: Calendar, color: '#E8941A', display: formatMinutes(todayMinutes) },
+    { label: '本周', value: weekMinutes, icon: TrendingUp, color: '#4ECDC4', display: formatMinutes(weekMinutes) },
+    { label: '本月', value: monthMinutes, icon: BarChart3, color: '#A78BFA', display: formatMinutes(monthMinutes) },
+    { label: '连击', value: streak, icon: Flame, color: '#F59E0B', unit: '天', sub: todayMinutes > 0 ? '今日已打卡，连击保持中' : '今天还没记录，快去练一会儿' },
+    { label: '总计', value: totalMinutes, icon: Clock, color: '#E86B6B', display: formatMinutes(totalMinutes) },
   ]
 
   return (
@@ -176,7 +194,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       </RevealSection>
 
       {/* Overview cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {statCards.map((item, i) => (
           <StatCard key={item.label} item={item} index={i} />
         ))}
@@ -324,29 +342,44 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       </RevealSection>
 
       {/* Milestones */}
-      {recentMilestones.length > 0 && (
+      {tieredMilestones.length > 0 && (
         <RevealSection delay={150}>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h3 className="section-title flex items-center gap-2">
               <Award size={13} style={{ color: '#A78BFA' }} />
-              最近达成的里程碑
+              里程碑
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {recentMilestones.map(ms => {
-                const cat = categories.find(c => c.id === ms.categoryId)
-                if (!cat) return null
-                return (
-                  <div key={ms.id}>
-                    <MilestoneCard
-                      milestone={ms}
-                      category={cat}
-                      entries={entries}
-                      allCategories={categories}
-                    />
-                  </div>
-                )
-              })}
-            </div>
+            {tieredMilestones.map(({ tier, items }) => (
+              <div key={tier.label} className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="text-xs font-medium px-2 py-0.5 rounded-md"
+                    style={{ background: `${tier.color}15`, color: tier.color }}
+                  >
+                    {tier.label}
+                  </span>
+                  <span className="text-[10px]" style={{ color: 'var(--slate-ghost)' }}>
+                    {items.length} 项
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {items.slice(0, 3).map(ms => {
+                    const cat = categories.find(c => c.id === ms.categoryId)
+                    if (!cat) return null
+                    return (
+                      <Link key={ms.id} to={`/category/${ms.categoryId}`} className="block">
+                        <MilestoneCard
+                          milestone={ms}
+                          category={cat}
+                          entries={entries}
+                          allCategories={categories}
+                        />
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </RevealSection>
       )}
@@ -434,7 +467,10 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                   : (total / maxTime) * 100
                 const childCount = categories.filter(c => c.parentId === cat.id).length
                 return (
-                  <div key={cat.id} className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+                  <Link key={cat.id} to={`/category/${cat.id}`} className="block p-4 transition-all duration-200" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--ghost-border)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--whisper-border)' }}
+                  >
                     <div className="flex items-center justify-between mb-2.5">
                       <div className="flex items-center gap-2">
                         <span
@@ -476,7 +512,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         </span>
                       </div>
                     )}
-                  </div>
+                  </Link>
                 )
               })}
             </div>

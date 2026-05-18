@@ -1,4 +1,4 @@
-import type { Category, TimeEntry, Goal, Milestone } from './types'
+import type { Category, TimeEntry, Goal, Milestone, CategoryMilestoneConfig } from './types'
 
 const GIST_ID_KEY = 'skill-tracker-gist-id'
 const GITHUB_TOKEN_KEY = 'skill-tracker-github-token'
@@ -10,6 +10,7 @@ export interface SyncData {
   entries: TimeEntry[]
   goals: Goal[]
   milestones: Milestone[]
+  customMilestoneConfigs?: CategoryMilestoneConfig[]
   syncedAt: string
 }
 
@@ -307,6 +308,7 @@ export async function syncFromCloud(): Promise<SyncData> {
   data.entries = Array.isArray(data.entries) ? data.entries : []
   data.goals = Array.isArray(data.goals) ? data.goals : []
   data.milestones = Array.isArray(data.milestones) ? data.milestones : []
+  data.customMilestoneConfigs = Array.isArray(data.customMilestoneConfigs) ? data.customMilestoneConfigs : []
 
   setLastSyncTime()
   return data

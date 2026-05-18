@@ -1,4 +1,4 @@
-import { FolderTree, PenLine, Timer, BarChart3, Target, Award, Download, Clock, LayoutDashboard, Lightbulb } from 'lucide-react'
+import { FolderTree, PenLine, Timer, BarChart3, Target, Award, Download, Clock, LayoutDashboard, Lightbulb, Share2, Flame, Calendar } from 'lucide-react'
 import RevealSection from '../components/RevealSection'
 
 const sections = [
@@ -34,11 +34,11 @@ const sections = [
     steps: [
       '进入「专注」页面',
       '先选择一个技能分类',
-      '点击「开始」按钮开始计时',
-      '专注过程中可「暂停」和「继续」',
-      '点击「结束」完成计时',
-      '结束后可补充本次专注的描述，点击「保存记录」',
-      '计时不足 1 分钟的记录会被自动丢弃',
+      '点击「开始」按钮开始计时——即便切到后台，计时也会用系统时间校准',
+      '专注过程中可「暂停」和「继续」，支持多段累加',
+      '点击「结束」完成计时，时长超过 30 秒即可保存',
+      '保存时可补充描述和开始时间（均为可选）',
+      '专注记录会自动同步到连击——今天有记录，连击就不断',
     ],
   },
   {
@@ -59,10 +59,25 @@ const sections = [
     color: '#E8941A',
     steps: [
       '首页「看板」展示你的整体数据概览',
-      '顶部四个卡片：今日、本周、本月、总计投入时间',
+      '顶部五张卡片：今日、本周、本月、连击天数、总计投入时间',
+      '「连击」卡片显示你连续打卡的天数——今天只要有记录，连击就不会断',
+      '即便今天只练了 5 分钟，连击依然在，这在心理学上比总时长更能促进行为坚持',
       '目标进度：显示所有设定目标的完成情况',
-      '技能总览：各大类的累计时间和进度条',
+      '技能总览：各大类的累计时间和进度条，点击跳转详情页',
       '最近记录：最新 8 条时间记录',
+    ],
+  },
+  {
+    icon: Share2,
+    title: '分类详情与分享卡片',
+    color: '#3B82F6',
+    steps: [
+      '在看板或分类页面点击任意技能分类，进入详情页',
+      '顶部「技能卡片」展示该技能的：累计投入、坚持天数、记录次数、目标进度',
+      '点击「保存为图片」可将卡片导出为 PNG，用于分享或留念',
+      '可设定技能的「开始日期」，卡片会自动计算「已坚持 X 天」',
+      '设定开始日期后，修改或清除都很方便——这是个可选设定，不强制',
+      '时间记录列表显示每次练习的日期、开始时间和时长',
     ],
   },
   {
@@ -176,7 +191,7 @@ export default function Guide() {
           <ul className="space-y-1.5 text-xs" style={{ color: 'var(--silver-mist)' }}>
             <li className="flex items-start gap-2">
               <span style={{ color: '#E8941A' }}>·</span>
-              每天坚持记录，哪怕只记录了「做了什么」也是有价值的
+              每天坚持记录，哪怕只有 5 分钟——保持连击比单次投入时长更重要
             </li>
             <li className="flex items-start gap-2">
               <span style={{ color: '#E8941A' }}>·</span>
@@ -185,6 +200,10 @@ export default function Guide() {
             <li className="flex items-start gap-2">
               <span style={{ color: '#E8941A' }}>·</span>
               里程碑达成时记得保存成就卡片，记录你的成长轨迹
+            </li>
+            <li className="flex items-start gap-2">
+              <span style={{ color: '#E8941A' }}>·</span>
+              给技能设置「开始日期」，看坚持了多少天，会很有成就感
             </li>
             <li className="flex items-start gap-2">
               <span style={{ color: '#E8941A' }}>·</span>

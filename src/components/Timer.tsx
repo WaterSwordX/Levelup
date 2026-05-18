@@ -12,19 +12,22 @@ export default function Timer({ onFinish, disabled }: Props) {
   const startTsRef = useRef(0)
   const accumulatedRef = useRef(0)
   const intervalRef = useRef<number | null>(null)
+  const runningRef = useRef(false)
 
   // Sync elapsed from wall clock — immune to background throttling
   const syncElapsed = useCallback(() => {
-    if (!running) return
+    if (!runningRef.current) return
     const real = accumulatedRef.current + Math.floor((Date.now() - startTsRef.current) / 1000)
     setElapsed(real)
-  }, [running])
+  }, [])
 
   useEffect(() => {
     if (running) {
+      runningRef.current = true
       startTsRef.current = Date.now()
       intervalRef.current = window.setInterval(syncElapsed, 200)
     } else {
+      runningRef.current = false
       if (intervalRef.current) clearInterval(intervalRef.current)
       intervalRef.current = null
     }
@@ -48,28 +51,33 @@ export default function Timer({ onFinish, disabled }: Props) {
   }
 
   const handleStart = () => {
+    runningRef.current = true
     startTsRef.current = Date.now()
     setRunning(true)
   }
 
   const handlePause = () => {
     accumulatedRef.current += Math.floor((Date.now() - startTsRef.current) / 1000)
+    runningRef.current = false
     setRunning(false)
   }
 
   const handleStop = () => {
-    const finalElapsed = running
+    const finalElapsed = runningRef.current
       ? accumulatedRef.current + Math.floor((Date.now() - startTsRef.current) / 1000)
       : accumulatedRef.current
+    runningRef.current = false
     setRunning(false)
-    if (finalElapsed >= 60) {
-      onFinish(Math.round(finalElapsed / 60))
+    const minutes = Math.round(finalElapsed / 60)
+    if (minutes > 0) {
+      onFinish(minutes)
     }
     setElapsed(0)
     accumulatedRef.current = 0
   }
 
   const handleReset = () => {
+    runningRef.current = false
     setRunning(false)
     setElapsed(0)
     accumulatedRef.current = 0

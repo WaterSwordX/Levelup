@@ -20,6 +20,7 @@ export interface TimeEntry {
   duration: number // 分钟
   date: string // YYYY-MM-DD
   createdAt: string
+  startTime?: string // HH:MM 可选的开始时间
 }
 
 export interface Goal {
@@ -37,3 +38,22 @@ export interface Milestone {
 }
 
 export const MILESTONE_THRESHOLDS = [1, 10, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
+
+export interface CategoryMilestoneConfig {
+  categoryId: string
+  customThresholds: number[]
+}
+
+export interface MilestoneTier {
+  label: string
+  minHours: number
+  maxHours: number
+  color: string
+}
+
+export const MILESTONE_TIERS: MilestoneTier[] = [
+  { label: '100h 级', minHours: 100, maxHours: 499, color: '#4ECDC4' },
+  { label: '500h 级', minHours: 500, maxHours: 999, color: '#A78BFA' },
+  { label: '1000h 级', minHours: 1000, maxHours: 4999, color: '#E8941A' },
+  { label: '5000h 级', minHours: 5000, maxHours: Infinity, color: '#E86B6B' },
+]
