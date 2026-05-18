@@ -47,7 +47,7 @@ function MilestoneTimelineItem({ ms, category, isLast }: { ms: Milestone; catego
       <div className="flex flex-col items-center">
         <div
           className="w-3 h-3 rounded-full shrink-0 ring-2"
-          style={{ backgroundColor: category.color, ringColor: `${category.color}30`, boxShadow: `0 0 10px ${category.color}40` }}
+          style={{ backgroundColor: category.color, boxShadow: `0 0 10px ${category.color}40, 0 0 0 2px ${category.color}30` }}
         />
         {!isLast && (
           <div className="w-px flex-1 min-h-[24px]" style={{ background: 'var(--whisper-border)' }} />

@@ -45,7 +45,6 @@ export default function MilestoneThresholdEditor({ categoryId, customConfigs, se
       {/* Effective thresholds display */}
       <div className="flex flex-wrap gap-1.5">
         {allEffective.map(h => {
-          const isGlobal = MILESTONE_THRESHOLDS.includes(h)
           const isCustom = currentCustom.includes(h)
           return (
             <span

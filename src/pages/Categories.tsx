@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { Category, TimeEntry, Goal, CategoryMilestoneConfig } from '../types'
-import { saveCategories, saveGoals, getGoalForCategory, getCategoryTotalTime, PRESET_COLORS, saveCustomMilestoneConfigs } from '../store'
+import type { Category, TimeEntry, Goal } from '../types'
+import { saveCategories, saveGoals, getGoalForCategory, getCategoryTotalTime, PRESET_COLORS } from '../store'
 import ColorPicker from '../components/ColorPicker'
 import CategoryTree from '../components/CategoryTree'
 import RevealSection from '../components/RevealSection'
@@ -13,11 +13,9 @@ interface Props {
   setCategories: (cats: Category[]) => void
   goals: Goal[]
   setGoals: (goals: Goal[]) => void
-  customConfigs: CategoryMilestoneConfig[]
-  setCustomConfigs: (configs: CategoryMilestoneConfig[]) => void
 }
 
-export default function Categories({ categories, entries, setCategories, goals, setGoals, customConfigs, setCustomConfigs }: Props) {
+export default function Categories({ categories, entries, setCategories, goals, setGoals }: Props) {
   const navigate = useNavigate()
   const [showAdd, setShowAdd] = useState<'top' | string | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
