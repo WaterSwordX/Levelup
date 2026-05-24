@@ -7,6 +7,8 @@ const GOALS_KEY = 'skill-tracker-goals'
 const MILESTONES_KEY = 'skill-tracker-milestones'
 const CUSTOM_MILESTONES_KEY = 'skill-tracker-custom-milestones'
 const DASHBOARD_SECTIONS_KEY = 'skill-tracker-dashboard-sections'
+const DASHBOARD_SUB_SECTIONS_KEY = 'skill-tracker-dashboard-subsections'
+const DASHBOARD_HIDDEN_ITEMS_KEY = 'skill-tracker-dashboard-hidden-items'
 
 export interface DashboardSections {
   countdowns: boolean
@@ -17,13 +19,35 @@ export interface DashboardSections {
   recent: boolean
 }
 
-const DEFAULT_DASHBOARD_SECTIONS: DashboardSections = {
+export interface DashboardSubSections {
+  insightsYesterday: boolean
+  insightsWeekly: boolean
+  insightsToday: boolean
+}
+
+export interface HiddenDashboardItems {
+  skillIds: string[]
+  goalCategoryIds: string[]
+}
+
+export const DEFAULT_DASHBOARD_SECTIONS: DashboardSections = {
   countdowns: true,
   insights: true,
   milestones: true,
   goals: true,
   skills: true,
   recent: true,
+}
+
+export const DEFAULT_DASHBOARD_SUB_SECTIONS: DashboardSubSections = {
+  insightsYesterday: true,
+  insightsWeekly: true,
+  insightsToday: true,
+}
+
+const DEFAULT_HIDDEN_ITEMS: HiddenDashboardItems = {
+  skillIds: [],
+  goalCategoryIds: [],
 }
 
 export function loadDashboardSections(): DashboardSections {
@@ -39,6 +63,42 @@ export function loadDashboardSections(): DashboardSections {
 
 export function saveDashboardSections(sections: DashboardSections) {
   localStorage.setItem(DASHBOARD_SECTIONS_KEY, JSON.stringify(sections))
+}
+
+export function loadDashboardSubSections(): DashboardSubSections {
+  try {
+    const raw = localStorage.getItem(DASHBOARD_SUB_SECTIONS_KEY)
+    if (raw) {
+      const saved = JSON.parse(raw)
+      return { ...DEFAULT_DASHBOARD_SUB_SECTIONS, ...saved }
+    }
+  } catch { /* ignore */ }
+  return { ...DEFAULT_DASHBOARD_SUB_SECTIONS }
+}
+
+export function saveDashboardSubSections(subs: DashboardSubSections) {
+  localStorage.setItem(DASHBOARD_SUB_SECTIONS_KEY, JSON.stringify(subs))
+}
+
+export function loadHiddenDashboardItems(): HiddenDashboardItems {
+  try {
+    const raw = localStorage.getItem(DASHBOARD_HIDDEN_ITEMS_KEY)
+    if (raw) {
+      const saved = JSON.parse(raw)
+      return { ...DEFAULT_HIDDEN_ITEMS, ...saved }
+    }
+  } catch { /* ignore */ }
+  return { ...DEFAULT_HIDDEN_ITEMS }
+}
+
+export function saveHiddenDashboardItems(items: HiddenDashboardItems) {
+  localStorage.setItem(DASHBOARD_HIDDEN_ITEMS_KEY, JSON.stringify(items))
+}
+
+export function resetAllDashboardSettings() {
+  localStorage.removeItem(DASHBOARD_SECTIONS_KEY)
+  localStorage.removeItem(DASHBOARD_SUB_SECTIONS_KEY)
+  localStorage.removeItem(DASHBOARD_HIDDEN_ITEMS_KEY)
 }
 
 export function loadCategories(): Category[] {

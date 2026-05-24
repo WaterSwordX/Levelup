@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import type { Category, TimeEntry, Goal, Milestone } from '../types'
 import { MILESTONE_TIERS } from '../types'
-import { getTopCategories, getCategoryTotalTime, getCategoryPath, getGoalForCategory, loadDashboardSections, saveDashboardSections } from '../store'
-import type { DashboardSections } from '../store'
+import { getTopCategories, getCategoryTotalTime, getCategoryPath, getGoalForCategory, loadDashboardSections, saveDashboardSections, loadDashboardSubSections, saveDashboardSubSections, loadHiddenDashboardItems, saveHiddenDashboardItems, resetAllDashboardSettings, DEFAULT_DASHBOARD_SECTIONS, DEFAULT_DASHBOARD_SUB_SECTIONS } from '../store'
+import type { DashboardSections, DashboardSubSections, HiddenDashboardItems } from '../store'
 import { Clock, TrendingUp, Calendar, Target, Award, Rocket, Flame, BarChart3, Zap, ChevronRight, CalendarDays, Settings, Eye, EyeOff } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import MilestoneCard from '../components/MilestoneCard'
@@ -66,12 +66,45 @@ function StatCard({ item, index }: { item: { label: string; value: number; icon:
 
 export default function Dashboard({ categories, entries, goals, milestones }: Props) {
   const [sections, setSections] = useState<DashboardSections>(loadDashboardSections)
+  const [subSections, setSubSections] = useState<DashboardSubSections>(loadDashboardSubSections)
+  const [hiddenItems, setHiddenItems] = useState<HiddenDashboardItems>(loadHiddenDashboardItems)
   const [customizing, setCustomizing] = useState(false)
 
   useEffect(() => { saveDashboardSections(sections) }, [sections])
+  useEffect(() => { saveDashboardSubSections(subSections) }, [subSections])
+  useEffect(() => { saveHiddenDashboardItems(hiddenItems) }, [hiddenItems])
 
   const toggleSection = (key: keyof DashboardSections) => {
     setSections(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const toggleSubSection = (key: keyof DashboardSubSections) => {
+    setSubSections(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const toggleHiddenSkill = (skillId: string) => {
+    setHiddenItems(prev => ({
+      ...prev,
+      skillIds: prev.skillIds.includes(skillId)
+        ? prev.skillIds.filter(id => id !== skillId)
+        : [...prev.skillIds, skillId],
+    }))
+  }
+
+  const toggleHiddenGoal = (catId: string) => {
+    setHiddenItems(prev => ({
+      ...prev,
+      goalCategoryIds: prev.goalCategoryIds.includes(catId)
+        ? prev.goalCategoryIds.filter(id => id !== catId)
+        : [...prev.goalCategoryIds, catId],
+    }))
+  }
+
+  const handleReset = () => {
+    resetAllDashboardSettings()
+    setSections({ ...DEFAULT_DASHBOARD_SECTIONS })
+    setSubSections({ ...DEFAULT_DASHBOARD_SUB_SECTIONS })
+    setHiddenItems({ skillIds: [], goalCategoryIds: [] })
   }
 
   // 辅助：区块标题 + 可见性切换
@@ -220,22 +253,36 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               {fmtDate(now)} 周{WEEKDAYS[now.getDay()]} · {weekRange}
             </p>
           </div>
-          <button
-            onClick={() => setCustomizing(!customizing)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-all duration-200 hover:bg-[var(--slate-surface)]"
-            style={{
-              color: customizing ? 'var(--ember-glow)' : 'var(--slate-ghost)',
-              background: customizing ? 'var(--ember-soft)' : 'transparent',
-              border: customizing ? '1px solid var(--ember-ghost)' : '1px solid transparent',
-            }}
-          >
-            <Settings size={13} />
-            {customizing ? '完成' : '自定义看板'}
-          </button>
+          <div className="flex items-center gap-2">
+            {customizing && (
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-all duration-200 hover:bg-[var(--slate-surface)]"
+                style={{
+                  color: 'var(--slate-ghost)',
+                  border: '1px solid var(--whisper-border)',
+                }}
+              >
+                恢复默认
+              </button>
+            )}
+            <button
+              onClick={() => setCustomizing(!customizing)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-all duration-200 hover:bg-[var(--slate-surface)]"
+              style={{
+                color: customizing ? 'var(--ember-glow)' : 'var(--slate-ghost)',
+                background: customizing ? 'var(--ember-soft)' : 'transparent',
+                border: customizing ? '1px solid var(--ember-ghost)' : '1px solid transparent',
+              }}
+            >
+              <Settings size={13} />
+              {customizing ? '完成' : '自定义看板'}
+            </button>
+          </div>
         </div>
         {customizing && (
           <p className="text-[11px] mt-2" style={{ color: 'var(--slate-ghost)' }}>
-            点击区块标题旁的眼睛图标来显示或隐藏该区块
+            点击眼睛图标来显示或隐藏板块、子卡片和单项技能/目标
           </p>
         )}
       </RevealSection>
@@ -248,6 +295,24 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       </div>
 
       {/* 计时日小卡片 */}
+      {(() => {
+        const allHidden = !sections.countdowns && !sections.insights && !sections.milestones && !sections.goals && !sections.skills && !sections.recent
+        if (allHidden) {
+          return (
+            <div className="p-10 text-center animate-fade-in-up" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+              <p className="text-sm mb-3" style={{ color: 'var(--silver-mist)' }}>所有板块已隐藏</p>
+              <button
+                onClick={handleReset}
+                className="px-4 py-1.5 text-xs rounded-md transition-all duration-200"
+                style={{ color: 'var(--ember-glow)', background: 'var(--ember-soft)', border: '1px solid var(--ember-ghost)' }}
+              >
+                恢复默认布局
+              </button>
+            </div>
+          )
+        }
+        return null
+      })()}
       {sections.countdowns && (() => {
         const countdownCats = categories
           .filter(c => c.showCountdown && (c.startDate || c.targetDate))
@@ -318,7 +383,20 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Yesterday comparison */}
-          <div className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+          {subSections.insightsYesterday && (
+          <div className="p-4 relative" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+            {customizing && (
+              <button
+                onClick={() => toggleSubSection('insightsYesterday')}
+                className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150"
+                style={{ color: 'var(--slate-ghost)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--silver-mist)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)' }}
+                title="隐藏此卡片"
+              >
+                <Eye size={12} />
+              </button>
+            )}
             <div className="flex items-center gap-2 mb-2.5">
               <BarChart3 size={13} style={{ color: '#4ECDC4' }} />
               <span className="text-xs font-medium" style={{ color: 'var(--slate-ghost)' }}>昨日对比</span>
@@ -343,9 +421,23 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               昨日 {formatMinutes(yesterdayMinutes)}
             </p>
           </div>
+          )}
 
           {/* Weekly average */}
-          <div className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+          {subSections.insightsWeekly && (
+          <div className="p-4 relative" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+            {customizing && (
+              <button
+                onClick={() => toggleSubSection('insightsWeekly')}
+                className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150"
+                style={{ color: 'var(--slate-ghost)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--silver-mist)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)' }}
+                title="隐藏此卡片"
+              >
+                <Eye size={12} />
+              </button>
+            )}
             <div className="flex items-center gap-2 mb-2.5">
               <Zap size={13} style={{ color: '#A78BFA' }} />
               <span className="text-xs font-medium" style={{ color: 'var(--slate-ghost)' }}>本周日均</span>
@@ -360,9 +452,23 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               已记录 {uniqueWeekDays} 天
             </p>
           </div>
+          )}
 
           {/* Today breakdown */}
-          <div className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+          {subSections.insightsToday && (
+          <div className="p-4 relative" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+            {customizing && (
+              <button
+                onClick={() => toggleSubSection('insightsToday')}
+                className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150"
+                style={{ color: 'var(--slate-ghost)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--silver-mist)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)' }}
+                title="隐藏此卡片"
+              >
+                <Eye size={12} />
+              </button>
+            )}
             <div className="flex items-center gap-2 mb-2.5">
               <Target size={13} style={{ color: '#E8941A' }} />
               <span className="text-xs font-medium" style={{ color: 'var(--slate-ghost)' }}>今日练习</span>
@@ -391,7 +497,11 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               <p className="text-xs" style={{ color: 'var(--slate-ghost)' }}>暂无记录</p>
             )}
           </div>
+          )}
         </div>
+        {!subSections.insightsYesterday && !subSections.insightsWeekly && !subSections.insightsToday && (
+          <p className="text-xs text-center py-4" style={{ color: 'var(--slate-ghost)' }}>所有子卡片已隐藏</p>
+        )}
         </div>
       </RevealSection>
       )}
@@ -440,21 +550,41 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
       )}
 
       {/* Goals */}
-      {sections.goals && categoriesWithGoals.length > 0 && (
+      {sections.goals && categoriesWithGoals.length > 0 && (() => {
+        const visibleGoals = categoriesWithGoals.filter(g => !hiddenItems.goalCategoryIds.includes(g.cat.id))
+        const hiddenCount = categoriesWithGoals.length - visibleGoals.length
+        return (
         <RevealSection delay={120}>
           <div className="space-y-3">
             <h3 className="section-title flex items-center gap-2">
               <Target size={13} style={{ color: '#4ECDC4' }} />
               <SectionToggle sectionKey="goals">目标进度</SectionToggle>
+              {customizing && hiddenCount > 0 && (
+                <span className="text-[10px]" style={{ color: 'var(--slate-ghost)' }}>（{hiddenCount} 项已隐藏）</span>
+              )}
             </h3>
+            {visibleGoals.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {categoriesWithGoals.map(({ cat, goal, total }) => {
+              {visibleGoals.map(({ cat, goal, total }) => {
                 const percent = Math.min((total / goal.targetMinutes) * 100, 100)
                 const remaining = Math.max(0, goal.targetMinutes - total)
                 const targetH = Math.floor(goal.targetMinutes / 60)
                 const targetLabel = targetH >= 1 ? `${targetH}小时` : `${goal.targetMinutes}分钟`
                 return (
-                  <div key={cat.id} className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+                  <div key={cat.id} className="relative">
+                    {customizing && (
+                      <button
+                        onClick={() => toggleHiddenGoal(cat.id)}
+                        className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150 z-10"
+                        style={{ color: 'var(--slate-ghost)' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = 'var(--silver-mist)' }}
+                        onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)' }}
+                        title="隐藏此目标"
+                      >
+                        <Eye size={12} />
+                      </button>
+                    )}
+                    <div className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
                     <div className="flex items-center justify-between mb-2.5">
                       <div className="flex items-center gap-2">
                         <span
@@ -494,24 +624,36 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         还差 {formatMinutes(remaining)} 达成目标
                       </p>
                     )}
+                    </div>
                   </div>
                 )
               })}
             </div>
+            ) : (
+              <p className="text-xs text-center py-4" style={{ color: 'var(--slate-ghost)' }}>所有目标已隐藏</p>
+            )}
           </div>
         </RevealSection>
-      )}
+        )
+      })()}
 
       {/* All skills overview */}
-      {sections.skills && topCategories.length > 0 && (
+      {sections.skills && topCategories.length > 0 && (() => {
+        const visibleSkills = topCategories.filter(c => !hiddenItems.skillIds.includes(c.id))
+        const hiddenCount = topCategories.length - visibleSkills.length
+        return (
         <RevealSection delay={80}>
           <div className="space-y-3">
             <h3 className="section-title flex items-center gap-2">
               <ChevronRight size={13} style={{ color: 'var(--slate-ghost)' }} />
               <SectionToggle sectionKey="skills">技能总览</SectionToggle>
+              {customizing && hiddenCount > 0 && (
+                <span className="text-[10px]" style={{ color: 'var(--slate-ghost)' }}>（{hiddenCount} 项已隐藏）</span>
+              )}
             </h3>
+            {visibleSkills.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {topCategories.map(cat => {
+              {visibleSkills.map(cat => {
                 const total = getCategoryTotalTime(cat.id, entries, categories)
                 const goal = getGoalForCategory(cat.id, goals)
                 const maxTime = goal
@@ -522,58 +664,76 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                   : (total / maxTime) * 100
                 const childCount = categories.filter(c => c.parentId === cat.id).length
                 return (
-                  <Link key={cat.id} to={`/category/${cat.id}`} className="block p-4 transition-all duration-200" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--ghost-border)' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--whisper-border)' }}
-                  >
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: cat.color }}
-                        />
-                        <span className="text-sm font-medium" style={{ color: 'var(--bright-chalk)' }}>
-                          {cat.name}
-                        </span>
-                        {childCount > 0 && (
-                          <span className="text-[10px]" style={{ color: 'var(--slate-ghost)' }}>
-                            {childCount} 子分类
-                          </span>
-                        )}
-                      </div>
-                      <span
-                        className="text-sm font-medium"
-                        style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--silver-mist)' }}
+                  <div key={cat.id} className="relative">
+                    {customizing && (
+                      <button
+                        onClick={() => toggleHiddenSkill(cat.id)}
+                        className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150 z-10"
+                        style={{ color: 'var(--slate-ghost)' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = 'var(--silver-mist)' }}
+                        onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)' }}
+                        title="隐藏此技能"
                       >
-                        {formatMinutes(total)}
-                      </span>
-                    </div>
-                    <div className="progress-track">
-                      <div
-                        className="progress-fill"
-                        style={{
-                          width: `${Math.min(percent, 100)}%`,
-                          background: cat.color,
-                        }}
-                      />
-                    </div>
-                    {goal && (
-                      <div className="text-right mt-1.5">
+                        <Eye size={12} />
+                      </button>
+                    )}
+                    <Link to={`/category/${cat.id}`} className="block p-4 transition-all duration-200" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--ghost-border)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--whisper-border)' }}
+                    >
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: cat.color }}
+                          />
+                          <span className="text-sm font-medium" style={{ color: 'var(--bright-chalk)' }}>
+                            {cat.name}
+                          </span>
+                          {childCount > 0 && (
+                            <span className="text-[10px]" style={{ color: 'var(--slate-ghost)' }}>
+                              {childCount} 子分类
+                            </span>
+                          )}
+                        </div>
                         <span
-                          className="text-[10px]"
-                          style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--slate-ghost)' }}
+                          className="text-sm font-medium"
+                          style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--silver-mist)' }}
                         >
-                          {percent.toFixed(1)}%
+                          {formatMinutes(total)}
                         </span>
                       </div>
-                    )}
-                  </Link>
+                      <div className="progress-track">
+                        <div
+                          className="progress-fill"
+                          style={{
+                            width: `${Math.min(percent, 100)}%`,
+                            background: cat.color,
+                          }}
+                        />
+                      </div>
+                      {goal && (
+                        <div className="text-right mt-1.5">
+                          <span
+                            className="text-[10px]"
+                            style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--slate-ghost)' }}
+                          >
+                            {percent.toFixed(1)}%
+                          </span>
+                        </div>
+                      )}
+                    </Link>
+                  </div>
                 )
               })}
             </div>
+            ) : (
+              <p className="text-xs text-center py-4" style={{ color: 'var(--slate-ghost)' }}>所有技能已隐藏</p>
+            )}
           </div>
         </RevealSection>
-      )}
+        )
+      })()}
 
       {/* Recent entries */}
       {sections.recent && recentEntries.length > 0 && (
