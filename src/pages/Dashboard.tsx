@@ -25,10 +25,11 @@ function formatMinutes(min: number): string {
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 
-function StatCard({ item, index }: { item: { label: string; value: number; icon: React.ElementType; color: string; unit?: string; sub?: string; display?: string }; index: number }) {
+function StatCard({ item, index }: { item: { label: string; value: number; icon: React.ElementType; color: string; unit?: string; sub?: string; display?: string; to: string }; index: number }) {
   return (
+    <Link to={item.to} className="block">
     <TiltCard
-      className="stat-card p-4 animate-fade-in-up"
+      className="stat-card p-4 animate-fade-in-up cursor-pointer"
       style={{
         '--accent-color': item.color,
         animationDelay: `${index * 50}ms`,
@@ -61,6 +62,7 @@ function StatCard({ item, index }: { item: { label: string; value: number; icon:
         <p className="text-[10px] mt-1" style={{ color: 'var(--slate-ghost)' }}>{item.sub}</p>
       )}
     </TiltCard>
+    </Link>
   )
 }
 
@@ -213,11 +215,11 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
   const weekRange = `${fmtDate(weekStart)} — ${fmtDate(weekEnd)}`
 
   const statCards = [
-    { label: '今日', value: todayMinutes, icon: Calendar, color: '#E8941A', display: formatMinutes(todayMinutes) },
-    { label: '本周', value: weekMinutes, icon: TrendingUp, color: '#4ECDC4', display: formatMinutes(weekMinutes) },
-    { label: '本月', value: monthMinutes, icon: BarChart3, color: '#A78BFA', display: formatMinutes(monthMinutes) },
-    { label: '连击', value: streak, icon: Flame, color: '#F59E0B', unit: '天', sub: todayMinutes > 0 ? '今日已打卡，连击保持中' : '今天还没记录，快去练一会儿' },
-    { label: '总计', value: totalMinutes, icon: Clock, color: '#E86B6B', display: formatMinutes(totalMinutes) },
+    { label: '今日', value: todayMinutes, icon: Calendar, color: '#E8941A', display: formatMinutes(todayMinutes), to: '/days' },
+    { label: '本周', value: weekMinutes, icon: TrendingUp, color: '#4ECDC4', display: formatMinutes(weekMinutes), to: '/stats' },
+    { label: '本月', value: monthMinutes, icon: BarChart3, color: '#A78BFA', display: formatMinutes(monthMinutes), to: '/stats' },
+    { label: '连击', value: streak, icon: Flame, color: '#F59E0B', unit: '天', sub: todayMinutes > 0 ? '今日已打卡，连击保持中' : '今天还没记录，快去练一会儿', to: '/days' },
+    { label: '总计', value: totalMinutes, icon: Clock, color: '#E86B6B', display: formatMinutes(totalMinutes), to: '/stats' },
   ]
 
   return (
@@ -336,9 +338,10 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {countdownCats.map(({ cat, days, isCountdown }) => (
-                  <div
+                  <Link
                     key={cat.id}
-                    className="p-3.5 rounded-xl relative overflow-hidden"
+                    to={`/category/${cat.id}`}
+                    className="block p-3.5 rounded-xl relative overflow-hidden transition-all duration-200 hover:brightness-110"
                     style={{
                       background: `linear-gradient(145deg, ${cat.color}12, ${cat.color}05)`,
                       border: `1px solid ${cat.color}18`,
@@ -365,7 +368,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         )}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -384,11 +387,12 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Yesterday comparison */}
           {subSections.insightsYesterday && (
-          <div className="p-4 relative" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+          <Link to="/days" className="block">
+          <div className="p-4 relative transition-all duration-200 hover:border-[var(--ghost-border)]" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
             {customizing && (
               <button
-                onClick={() => toggleSubSection('insightsYesterday')}
-                className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150"
+                onClick={e => { e.preventDefault(); toggleSubSection('insightsYesterday') }}
+                className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150 z-10"
                 style={{ color: 'var(--slate-ghost)' }}
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--silver-mist)' }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)' }}
@@ -421,15 +425,17 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               昨日 {formatMinutes(yesterdayMinutes)}
             </p>
           </div>
+          </Link>
           )}
 
           {/* Weekly average */}
           {subSections.insightsWeekly && (
-          <div className="p-4 relative" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+          <Link to="/stats" className="block">
+          <div className="p-4 relative transition-all duration-200 hover:border-[var(--ghost-border)]" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
             {customizing && (
               <button
-                onClick={() => toggleSubSection('insightsWeekly')}
-                className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150"
+                onClick={e => { e.preventDefault(); toggleSubSection('insightsWeekly') }}
+                className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150 z-10"
                 style={{ color: 'var(--slate-ghost)' }}
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--silver-mist)' }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)' }}
@@ -452,6 +458,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               已记录 {uniqueWeekDays} 天
             </p>
           </div>
+          </Link>
           )}
 
           {/* Today breakdown */}
@@ -460,7 +467,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
             {customizing && (
               <button
                 onClick={() => toggleSubSection('insightsToday')}
-                className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150"
+                className="absolute top-2 right-2 p-0.5 rounded transition-colors duration-150 z-10"
                 style={{ color: 'var(--slate-ghost)' }}
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--silver-mist)' }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-ghost)' }}
@@ -476,12 +483,12 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
             {todayCategoryBreakdown.length > 0 ? (
               <div className="space-y-1.5">
                 {todayCategoryBreakdown.slice(0, 3).map(({ cat, minutes }) => (
-                  <div key={cat.id} className="flex items-center gap-2">
+                  <Link key={cat.id} to={`/category/${cat.id}`} className="flex items-center gap-2 group">
                     <span
                       className="w-1.5 h-1.5 rounded-full shrink-0"
                       style={{ backgroundColor: cat.color }}
                     />
-                    <span className="text-xs flex-1 truncate" style={{ color: 'var(--silver-mist)' }}>
+                    <span className="text-xs flex-1 truncate group-hover:underline" style={{ color: 'var(--silver-mist)' }}>
                       {cat.name}
                     </span>
                     <span
@@ -490,7 +497,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                     >
                       {formatMinutes(minutes)}
                     </span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
@@ -584,7 +591,10 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         <Eye size={12} />
                       </button>
                     )}
-                    <div className="p-4" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}>
+                    <Link to={`/category/${cat.id}`} className="block p-4 transition-all duration-200" style={{ background: 'var(--carbon-base)', border: '1px solid var(--whisper-border)', borderRadius: 'var(--radius-lg)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--ghost-border)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--whisper-border)' }}
+                    >
                     <div className="flex items-center justify-between mb-2.5">
                       <div className="flex items-center gap-2">
                         <span
@@ -624,7 +634,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         还差 {formatMinutes(remaining)} 达成目标
                       </p>
                     )}
-                    </div>
+                    </Link>
                   </div>
                 )
               })}
@@ -756,8 +766,9 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                   else dateLabel = `${entryDate.getMonth() + 1}/${entryDate.getDate()}`
 
                   return (
-                    <div
+                    <Link
                       key={entry.id}
+                      to={`/category/${entry.categoryId}`}
                       className="px-4 py-3 flex items-center gap-3 transition-colors duration-150 hover:bg-[var(--slate-surface)] animate-fade-in"
                       style={{ animationDelay: `${i * 30}ms` }}
                     >
@@ -777,7 +788,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                       >
                         {formatMinutes(entry.duration)}
                       </span>
-                    </div>
+                    </Link>
                   )
                 })}
               </div>
