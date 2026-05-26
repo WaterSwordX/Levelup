@@ -338,10 +338,9 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {countdownCats.map(({ cat, days, isCountdown }) => (
-                  <Link
+                  <div
                     key={cat.id}
-                    to={`/category/${cat.id}`}
-                    className="block p-3.5 rounded-xl relative overflow-hidden transition-all duration-200 hover:brightness-110"
+                    className="p-3.5 rounded-xl relative overflow-hidden"
                     style={{
                       background: `linear-gradient(145deg, ${cat.color}12, ${cat.color}05)`,
                       border: `1px solid ${cat.color}18`,
@@ -368,7 +367,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                         )}
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>
