@@ -71,6 +71,7 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
   const [subSections, setSubSections] = useState<DashboardSubSections>(loadDashboardSubSections)
   const [hiddenItems, setHiddenItems] = useState<HiddenDashboardItems>(loadHiddenDashboardItems)
   const [customizing, setCustomizing] = useState(false)
+  const [expandedCountdown, setExpandedCountdown] = useState<string | null>(null)
 
   useEffect(() => { saveDashboardSections(sections) }, [sections])
   useEffect(() => { saveDashboardSubSections(subSections) }, [subSections])
@@ -337,18 +338,24 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                 <SectionToggle sectionKey="countdowns">计时日</SectionToggle>
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {countdownCats.map(({ cat, days, isCountdown }) => (
+                {countdownCats.map(({ cat, days, isCountdown }) => {
+                  const isExpanded = expandedCountdown === cat.id
+                  const dateStr = isCountdown ? cat.targetDate! : cat.startDate!
+                  const d = new Date(dateStr + 'T00:00:00')
+                  const dateLabel = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
+                  return (
                   <div
                     key={cat.id}
-                    className="p-3.5 rounded-xl relative overflow-hidden"
+                    onClick={() => setExpandedCountdown(isExpanded ? null : cat.id)}
+                    className="p-3.5 rounded-xl relative overflow-hidden cursor-pointer transition-all duration-300"
                     style={{
                       background: `linear-gradient(145deg, ${cat.color}12, ${cat.color}05)`,
-                      border: `1px solid ${cat.color}18`,
+                      border: `1px solid ${isExpanded ? cat.color + '40' : cat.color + '18'}`,
                     }}
                   >
                     <div
-                      className="absolute -right-1 -top-3 text-[60px] font-black leading-none select-none pointer-events-none"
-                      style={{ fontFamily: "'JetBrains Mono', monospace", color: `${cat.color}08` }}
+                      className="absolute -right-1 -top-3 text-[60px] font-black leading-none select-none pointer-events-none transition-opacity duration-300"
+                      style={{ fontFamily: "'JetBrains Mono', monospace", color: `${cat.color}08`, opacity: isExpanded ? 0.3 : 1 }}
                     >
                       {days}
                     </div>
@@ -366,9 +373,23 @@ export default function Dashboard({ categories, entries, goals, milestones }: Pr
                           <span className="text-[9px] ml-1 px-1 py-0.5 rounded" style={{ background: `${cat.color}20`, color: cat.color }}>倒数</span>
                         )}
                       </div>
+                      {isExpanded && (
+                        <div className="mt-2.5 pt-2.5 animate-fade-in-up" style={{ borderTop: `1px solid ${cat.color}15` }}>
+                          <p className="text-[11px]" style={{ color: 'var(--silver-mist)' }}>
+                            {isCountdown ? '目标日期' : '起始日期'}
+                          </p>
+                          <p className="text-xs font-medium mt-0.5" style={{ color: 'var(--bright-chalk)' }}>
+                            {dateLabel}
+                          </p>
+                          <p className="text-[10px] mt-1" style={{ color: 'var(--slate-ghost)' }}>
+                            {isCountdown ? `还有 ${days} 天` : `已经 ${days} 天`}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </RevealSection>
